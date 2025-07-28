@@ -21,7 +21,34 @@
             height: 100vh;
             width: 100vw;
         }
-
+        
+        .app-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 100;
+            display: none; /* 默认隐藏 */
+        }
+        
+        /* 当第一页或第二页处于激活状态时显示标题 */
+        #page1.active ~ .app-title {
+            display: block;
+        }
+        
+        #page2.active ~ .app-title {
+            display: block;
+        }
+        
+        #page3.active ~ .app-title {
+            display: none;
+        }
+        
         .page {
             text-align: center;
             display: none;
@@ -29,31 +56,55 @@
             padding: 20px;
             box-sizing: border-box;
         }
-
+        
         .page.active {
             display: block;
         }
-
+        
+        #page1.active,
+        #page2.active {
+            padding-top: 80px; /* 为固定标题留出空间 */
+        }
+        
+        #page3.active {
+            padding-top: 20px; /* 第三页不需要为标题留出空间 */
+        }
+        
         input[type="text"] {
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             border: 2px solid #ccc;
-            border-radius: 4px;
-            margin-right: 10px;
+            border-radius: 6px;
             width: 300px;
             max-width: 90%;
             display: block;
-            margin: 0 auto 15px auto;
+            margin: 0 auto 20px auto;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"]:focus {
+            border-color: #555555;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(85, 85, 85, 0.2);
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 16px;
             background-color: #555555;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         button:hover {
@@ -66,7 +117,7 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            font-size: 18px;
+            font-size: 1.125rem;
             border: 2px solid rgba(255, 255, 255, 0.4);
             cursor: pointer;
             margin-top: 20px;
@@ -155,7 +206,7 @@
         }
         
         .decision-text {
-            font-size: 24px;
+            font-size: 1.5rem;
             margin-bottom: 30px;
             background: rgba(255, 255, 255, 0.7);
             padding: 20px 30px;
@@ -170,7 +221,7 @@
         }
         
         .result-text {
-            font-size: 32px;
+            font-size: 2rem;
             color: black;
             font-weight: bold;
             background: linear-gradient(90deg, #cc0000, #cc6600, #cccc00, #66cc00, #00cc00, #00cc66, #00cccc, #0066cc, #0000cc, #6600cc, #cc00cc, #cc0066);
@@ -222,7 +273,7 @@
         }
         
         h1 {
-            font-size: 24px;
+            font-size: 1.5rem;
             margin-bottom: 20px;
         }
         
@@ -247,6 +298,21 @@
             
             h1 {
                 font-size: 20px;
+            }
+            
+            .app-title {
+                font-size: 28px;
+                margin-bottom: 15px;
+                top: 15px;
+            }
+            
+            #page1.active,
+            #page2.active {
+                padding-top: 70px; /* 为固定标题留出空间 */
+            }
+            
+            #page3.active {
+                padding-top: 15px; /* 第三页不需要为标题留出空间 */
             }
             
             input[type="text"] {
@@ -275,6 +341,21 @@
             
             h1 {
                 font-size: 18px;
+            }
+            
+            .app-title {
+                font-size: 26px;
+                margin-bottom: 15px;
+                top: 10px;
+            }
+            
+            #page1.active,
+            #page2.active {
+                padding-top: 60px; /* 为固定标题留出空间 */
+            }
+            
+            #page3.active {
+                padding-top: 10px; /* 第三页不需要为标题留出空间 */
             }
             
             .page {
@@ -320,6 +401,9 @@
                 <div class="result-text" id="resultText"></div>
             </div>
         </div>
+        
+        <!-- 软件标题 -->
+        <div class="app-title">决策仪式感神器</div>
     </div>
     
     <!-- 烟花容器 -->
@@ -426,7 +510,7 @@
                 createFirework();
             }, 300);
             
-            // 当离开第三页时停止烟花效果
+            // 当离开第三页时停止烟花效果并显示标题
             const observer = new MutationObserver(() => {
                 if (!page3.classList.contains('active')) {
                     clearInterval(fireworksInterval);
@@ -434,6 +518,7 @@
                     while (fireworksContainer.firstChild) {
                         fireworksContainer.removeChild(fireworksContainer.firstChild);
                     }
+                    // 标题会通过CSS自动显示
                 }
             });
             
