@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策助手</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .page {
+            text-align: center;
+            display: none;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            width: 300px;
+            max-width: 90%;
+            display: block;
+            margin: 0 auto 15px auto;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #555555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #333333;
+        }
+
+        .decision-button {
+            background: radial-gradient(circle at 30% 30%, #ff3333, #cc0000);
+            color: white;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            font-size: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 6px 12px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            outline: none;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .decision-button:disabled {
+            background: radial-gradient(circle at 30% 30%, #dddddd, #bbbbbb);
+            cursor: not-allowed;
+            box-shadow: 
+                0 3px 6px rgba(0, 0, 0, 0.2),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .decision-button:not(:disabled):hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            background: radial-gradient(circle at 30% 30%, #ff4444, #dd0000);
+        }
+
+        .decision-button:not(:disabled):active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+            background: radial-gradient(circle at 30% 30%, #ee0000, #bb0000);
+        }
+
+        .decision-button::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0.7;
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+
+        .decision-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .decision-button:focus:not(:disabled)::before {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(50, 50);
+                opacity: 0;
+            }
+        }
+        
+        .decision-text {
+            font-size: 24px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            -webkit-backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        .result-text {
+            font-size: 32px;
+            color: black;
+            font-weight: bold;
+            background: linear-gradient(90deg, #cc0000, #cc6600, #cccc00, #66cc00, #00cc00, #00cc66, #00cccc, #0066cc, #0000cc, #6600cc, #cc00cc, #cc0066);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: colorChange 2s linear infinite;
+            word-wrap: break-word;
+            padding: 0 20px;
+        }
+
+        @keyframes colorChange {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+        
+        .button-container {
+            margin-top: 15px;
+        }
+        
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            font-size: 14px;
+            min-height: 20px;
+        }
+        
+        .page2-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 烟花特效样式 */
+        .fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        /* 手机适配 */
+        @media (max-width: 768px) {
+            .decision-text {
+                font-size: 20px;
+                padding: 15px 20px;
+            }
+            
+            .result-text {
+                font-size: 24px;
+            }
+            
+            .decision-button {
+                width: 80px;
+                height: 80px;
+                font-size: 16px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            input[type="text"] {
+                font-size: 16px; /* 防止iOS缩放 */
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .decision-text {
+                font-size: 18px;
+                padding: 12px 15px;
+            }
+            
+            .result-text {
+                font-size: 20px;
+            }
+            
+            .decision-button {
+                width: 70px;
+                height: 70px;
+                font-size: 14px;
+            }
+            
+            h1 {
+                font-size: 18px;
+            }
+            
+            .page {
+                padding: 15px;
+            }
+        }
+        
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 第一个页面 -->
+        <div id="page1" class="page active">
+            <div>
+                <h1>你想做什么决定</h1>
+                <input type="text" id="decisionInput" placeholder="请输入你的决定">
+                <div class="button-container">
+                    <button id="confirmButton">确定</button>
+                </div>
+                <div id="errorMessage" class="error-message" style="color: red; margin-top: 10px; display: none;">
+                    请输入需要决定的事情
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二个页面 -->
+        <div id="page2" class="page">
+            <div class="page2-content">
+                <div class="decision-text" id="decisionText"></div>
+                <button class="decision-button" id="decisionButton" disabled></button>
+            </div>
+        </div>
+        
+        <!-- 第三个页面 -->
+        <div id="page3" class="page">
+            <div>
+                <div class="result-text" id="resultText"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 烟花容器 -->
+    <div class="fireworks-container" id="fireworksContainer"></div>
+
+    <script>
+        // 页面元素
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+        const page3 = document.getElementById('page3');
+        const decisionInput = document.getElementById('decisionInput');
+        const confirmButton = document.getElementById('confirmButton');
+        const decisionText = document.getElementById('decisionText');
+        const decisionButton = document.getElementById('decisionButton');
+        const resultText = document.getElementById('resultText');
+        const fireworksContainer = document.getElementById('fireworksContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        // 用户输入的决定内容
+        let userDecision = '';
+
+        // 第一个页面的确定按钮事件
+        confirmButton.addEventListener('click', goToPage2);
+        
+        // 回车键事件
+        decisionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                goToPage2();
+            }
+        });
+
+        // 验证用户输入
+        function validateInput(input) {
+            // 检查是否为空
+            if (!input) {
+                errorMessage.textContent = '请输入需要决定的事情';
+                return false;
+            }
+        }
+
+        // 跳转到第二个页面
+        function goToPage2() {
+            userDecision = decisionInput.value.trim();
+            if (userDecision) {
+                // 隐藏错误信息
+                errorMessage.style.display = 'none';
+                page1.classList.remove('active');
+                page2.classList.add('active');
+                decisionText.textContent = userDecision;
+                startCountdown();
+            } else {
+                // 显示错误信息
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // 倒计时功能
+        function startCountdown() {
+            let count = 7;
+            decisionButton.textContent = count;
+            
+            const countdown = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    decisionButton.textContent = count;
+                } else {
+                    clearInterval(countdown);
+                    decisionButton.textContent = '点击';
+                    decisionButton.disabled = false;
+                    decisionButton.style.backgroundColor = 'red';
+                }
+            }, 1000);
+        }
+        
+        // 第二个页面按钮点击事件
+        decisionButton.addEventListener('click', function() {
+            page2.classList.remove('active');
+            page3.classList.add('active');
+            resultText.textContent = '大胆的' + userDecision + '吧！';
+            startFireworks();
+        });
+        
+        // 第二个页面回车键事件
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && page2.classList.contains('active')) {
+                page2.classList.remove('active');
+                page3.classList.add('active');
+                resultText.textContent = '大胆的' + userDecision + '吧！';
+                startFireworks();
+            }
+        });
+        
+        // 烟花特效
+        function startFireworks() {
+            // 创建多个烟花
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    createFirework();
+                }, i * 100);
+            }
+            
+            // 每隔一段时间重新创建烟花
+            const fireworksInterval = setInterval(() => {
+                createFirework();
+            }, 300);
+            
+            // 当离开第三页时停止烟花效果
+            const observer = new MutationObserver(() => {
+                if (!page3.classList.contains('active')) {
+                    clearInterval(fireworksInterval);
+                    // 清空烟花容器
+                    while (fireworksContainer.firstChild) {
+                        fireworksContainer.removeChild(fireworksContainer.firstChild);
+                    }
+                }
+            });
+            
+            observer.observe(page3, { classList: true });
+        }
+        
+        function createFirework() {
+            const firework = document.createElement('div');
+            firework.classList.add('firework');
+            
+            // 随机颜色
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            firework.style.backgroundColor = color;
+            
+            // 随机位置
+            const posX = Math.random() * window.innerWidth;
+            const posY = Math.random() * window.innerHeight;
+            firework.style.left = posX + 'px';
+            firework.style.top = posY + 'px';
+            
+            // 随机大小
+            const size = Math.random() * 5 + 2;
+            firework.style.width = size + 'px';
+            firework.style.height = size + 'px';
+            
+            // 添加到容器
+            fireworksContainer.appendChild(firework);
+            
+            // 添加动画
+            const animation = firework.animate([
+                { transform: 'scale(1)', opacity: 1 },
+                { transform: 'scale(2)', opacity: 0 }
+            ], {
+                duration: Math.random() * 2000 + 1000,
+                easing: 'ease-out'
+            });
+            
+            // 动画结束后移除元素
+            animation.onfinish = () => {
+                firework.remove();
+            };
+        }
+    </script>
+</body>
+</html>
