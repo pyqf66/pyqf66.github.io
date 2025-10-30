@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>4x4数独游戏 - 卡通版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -209,11 +209,20 @@
             100% { background-position: 0% 50%; }
         }
         
+        /* 修复移动端滚动问题 */
+        html, body {
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
+            min-height: 100vh;
+        }
+        
         .game-container {
             background: linear-gradient(135deg, #E3F2FD 0%, #F3E5F5 50%, #E8F5E8 100%);
             min-height: 100vh;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
+            padding-bottom: 40px;
         }
         
         /* 卡通背景装饰 */
@@ -326,182 +335,476 @@
         
         /* 装饰性图标 */
         .decorative-icon {
-            position: absolute;
+            position: fixed;
             font-size: 1.5rem;
             animation: float 4s ease-in-out infinite;
             opacity: 0.7;
+            z-index: 0;
         }
         
         .icon-1 { top: 5%; right: 10%; animation-delay: 0s; }
         .icon-2 { top: 20%; left: 8%; animation-delay: 1s; }
         .icon-3 { bottom: 15%; right: 15%; animation-delay: 2s; }
         .icon-4 { bottom: 25%; left: 12%; animation-delay: 3s; }
+        
+        /* 基础样式 */
+        .main-content {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+        
+        /* 胜利弹窗基础样式 */
+        #winModal {
+            padding: 20px;
+        }
+        
+        #winModal .card-cartoon {
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* 移动端适配 (手机) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px 5px;
+            }
+            
+            .sudoku-grid {
+                width: 100%;
+                max-width: 320px;
+                margin: 0 auto;
+                padding: 15px;
+            }
+            
+            #sudokuBoard {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1;
+                max-width: 280px;
+                margin: 0 auto;
+            }
+            
+            .sudoku-cell {
+                font-size: 1.3rem;
+                min-height: 50px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-width: 2px !important;
+            }
+            
+            .btn-number {
+                padding: 12px 0;
+                font-size: 1.5rem;
+                margin: 2px;
+            }
+            
+            .card-cartoon {
+                width: 100%;
+                max-width: 320px;
+                margin: 0 auto 15px;
+                padding: 15px;
+            }
+            
+            .game-status {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+            
+            .status-item {
+                width: 100%;
+                max-width: 320px;
+                margin: 0 auto;
+                padding: 12px;
+            }
+            
+            .main-game {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                width: 100%;
+                max-width: 320px;
+            }
+            
+            .decorative-icon {
+                font-size: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .message-box {
+                top: 10px;
+                right: 10px;
+                padding: 10px 15px;
+                font-size: 0.8rem;
+                max-width: 80%;
+            }
+            
+            .btn-cartoon {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+                margin: 3px 0;
+            }
+            
+            .sun, .cloud {
+                width: 80px;
+                height: 80px;
+            }
+        }
+        
+        /* 平板设备适配 (iPad) */
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .container {
+                padding: 20px 15px;
+                max-width: 900px;
+            }
+            
+            /* 标题区域 */
+            h1 {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+            
+            .game-title p {
+                font-size: 1.2rem;
+            }
+            
+            /* 游戏状态面板 */
+            .game-status {
+                flex-direction: row;
+                justify-content: center;
+                gap: 15px;
+                flex-wrap: wrap;
+                margin-bottom: 25px;
+            }
+            
+            .status-item {
+                width: 28%;
+                min-width: 200px;
+                padding: 18px;
+                margin: 0;
+            }
+            
+            .timer, #progress {
+                font-size: 1.8rem;
+            }
+            
+            .difficulty-btn {
+                padding: 8px 15px;
+                font-size: 1rem;
+                margin: 0 2px;
+            }
+            
+            /* 主要游戏区域 */
+            .main-game {
+                flex-direction: row;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 30px;
+                flex-wrap: wrap;
+            }
+            
+            /* 数独棋盘 */
+            .sudoku-grid {
+                width: 45%;
+                min-width: 300px;
+                max-width: 400px;
+                padding: 20px;
+                margin: 0;
+            }
+            
+            #sudokuBoard {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1/1;
+                max-width: 350px;
+                margin: 0 auto;
+            }
+            
+            .sudoku-cell {
+                font-size: 1.8rem;
+                min-height: 70px;
+                border-width: 3px !important;
+            }
+            
+            /* 控制面板 */
+            .control-panel {
+                width: 45%;
+                min-width: 300px;
+                max-width: 350px;
+                margin: 0;
+            }
+            
+            .card-cartoon {
+                width: 100%;
+                max-width: 350px;
+                margin: 0 0 20px 0;
+                padding: 20px;
+            }
+            
+            /* 数字键盘 */
+            .btn-number {
+                padding: 18px 0;
+                font-size: 2rem;
+                margin: 4px;
+            }
+            
+            /* 功能按钮 */
+            .btn-cartoon {
+                padding: 12px 25px;
+                font-size: 1.1rem;
+                margin: 4px 0;
+            }
+            
+            /* 游戏规则 */
+            .game-rules {
+                font-size: 1rem;
+            }
+            
+            /* 装饰图标 */
+            .decorative-icon {
+                font-size: 1.8rem;
+            }
+            
+            /* 消息框 */
+            .message-box {
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                font-size: 1rem;
+                max-width: 300px;
+            }
+            
+            /* 胜利弹窗 */
+            #winModal .card-cartoon {
+                max-width: 400px;
+                padding: 50px 30px;
+            }
+            
+            #winModal h2 {
+                font-size: 2.5rem;
+            }
+            
+            #winModal p {
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* 桌面设备适配 */
+        @media (min-width: 1025px) {
+            .container {
+                max-width: 1200px;
+                padding: 30px 20px;
+            }
+            
+            .game-status {
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            
+            .status-item {
+                padding: 20px;
+            }
+            
+            .sudoku-grid {
+                padding: 25px;
+            }
+            
+            .sudoku-cell {
+                font-size: 2rem;
+                min-height: 80px;
+            }
+            
+            .btn-number {
+                padding: 20px 0;
+                font-size: 2.2rem;
+            }
+            
+            .btn-cartoon {
+                padding: 15px 30px;
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
-<body class="font-comic game-container">
+<body class="font-comic">
     <!-- 装饰性图标 -->
     <div class="decorative-icon icon-1">⭐</div>
     <div class="decorative-icon icon-2">🌈</div>
     <div class="decorative-icon icon-3">☀️</div>
     <div class="decorative-icon icon-4">☁️</div>
     
-    <div class="container mx-auto px-4 py-8 relative z-10">
-        <!-- 游戏标题 -->
-        <div class="text-center mb-8 animate-bounce-soft">
-            <div class="inline-flex items-center gap-4 mb-4">
-                <div class="sun w-16 h-16 flex items-center justify-center">
-                    <span class="text-2xl">☀️</span>
-                </div>
-                <h1 class="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cartoon-blue via-cartoon-pink to-cartoon-green bg-clip-text text-transparent mb-2">
-                    4x4数独大冒险
-                </h1>
-                <div class="cloud w-16 h-10 flex items-center justify-center">
-                    <span class="text-xl">☁️</span>
-                </div>
-            </div>
-            <p class="text-xl text-gray-700 font-semibold">和小伙伴一起挑战逻辑思维吧！</p>
-        </div>
-        
-        <!-- 游戏状态面板 -->
-        <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-8">
-            <!-- 计时器 -->
-            <div class="card-cartoon p-6 bg-white border-4 border-cartoon-blue animate-float">
-                <div class="flex items-center gap-3">
-                    <div class="sunshine w-12 h-12 rounded-full flex items-center justify-center animate-spin-slow">
-                        <i class="fa fa-clock-o text-2xl text-yellow-600"></i>
+    <div class="game-container">
+        <div class="main-content">
+            <div class="container mx-auto px-4 py-6">
+                <!-- 游戏标题 -->
+                <div class="game-title text-center mb-6 animate-bounce-soft">
+                    <div class="inline-flex items-center gap-3 mb-3">
+                        <div class="sun w-12 h-12 flex items-center justify-center">
+                            <span class="text-xl">☀️</span>
+                        </div>
+                        <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cartoon-blue via-cartoon-pink to-cartoon-green bg-clip-text text-transparent mb-2">
+                            4x4数独大冒险
+                        </h1>
+                        <div class="cloud w-12 h-8 flex items-center justify-center">
+                            <span class="text-lg">☁️</span>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm text-gray-600 font-semibold">游戏时间</div>
-                        <div id="timer" class="text-3xl font-bold timer">00:00</div>
-                    </div>
+                    <p class="text-lg text-gray-700 font-semibold">和小伙伴一起挑战逻辑思维吧！</p>
                 </div>
-            </div>
-            
-            <!-- 难度选择 -->
-            <div class="card-cartoon p-6 bg-white border-4 border-cartoon-pink">
-                <div class="text-sm text-gray-600 mb-3 font-semibold">选择难度</div>
-                <div class="flex gap-3">
-                    <button onclick="setDifficulty('easy')" class="difficulty-btn px-5 py-3 rounded-lg border-3 border-cartoon-green hover:bg-cartoon-green hover:text-white transition-all" data-difficulty="easy">
-                        🐣 简单
-                    </button>
-                    <button onclick="setDifficulty('medium')" class="difficulty-btn px-5 py-3 rounded-lg border-3 border-cartoon-yellow hover:bg-cartoon-yellow hover:text-white transition-all active" data-difficulty="medium">
-                        🐰 中等
-                    </button>
-                    <button onclick="setDifficulty('hard')" class="difficulty-btn px-5 py-3 rounded-lg border-3 border-cartoon-orange hover:bg-cartoon-orange hover:text-white transition-all" data-difficulty="hard">
-                        🦁 困难
-                    </button>
-                </div>
-            </div>
-            
-            <!-- 游戏信息 -->
-            <div class="card-cartoon p-6 bg-white border-4 border-cartoon-purple animate-float" style="animation-delay: 1s;">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-gradient-to-r from-cartoon-pink to-cartoon-purple rounded-full flex items-center justify-center animate-sparkle">
-                        <i class="fa fa-star text-2xl text-white"></i>
+                
+                <!-- 游戏状态面板 -->
+                <div class="game-status flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
+                    <!-- 计时器 -->
+                    <div class="status-item card-cartoon p-4 bg-white border-3 border-cartoon-blue animate-float">
+                        <div class="flex items-center gap-2">
+                            <div class="sunshine w-10 h-10 rounded-full flex items-center justify-center animate-spin-slow">
+                                <i class="fa fa-clock-o text-xl text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-600 font-semibold">游戏时间</div>
+                                <div id="timer" class="text-2xl font-bold timer">00:00</div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm text-gray-600 font-semibold">完成进度</div>
-                        <div id="progress" class="text-3xl font-bold text-cartoon-pink">0/16</div>
+                    
+                    <!-- 难度选择 -->
+                    <div class="status-item card-cartoon p-4 bg-white border-3 border-cartoon-pink">
+                        <div class="text-xs text-gray-600 mb-2 font-semibold">选择难度</div>
+                        <div class="flex gap-2">
+                            <button onclick="setDifficulty('easy')" class="difficulty-btn px-3 py-2 rounded-lg border-2 border-cartoon-green hover:bg-cartoon-green hover:text-white transition-all text-sm" data-difficulty="easy">
+                                🐣 简单
+                            </button>
+                            <button onclick="setDifficulty('medium')" class="difficulty-btn px-3 py-2 rounded-lg border-2 border-cartoon-yellow hover:bg-cartoon-yellow hover:text-white transition-all text-sm active" data-difficulty="medium">
+                                🐰 中等
+                            </button>
+                            <button onclick="setDifficulty('hard')" class="difficulty-btn px-3 py-2 rounded-lg border-2 border-cartoon-orange hover:bg-cartoon-orange hover:text-white transition-all text-sm" data-difficulty="hard">
+                                🦁 困难
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 主要游戏区域 -->
-        <div class="flex flex-col lg:flex-row justify-center items-start gap-8">
-            <!-- 数独棋盘 -->
-            <div class="sudoku-grid p-6">
-                <div id="sudokuBoard" class="grid-4x4 w-72 h-72 md:w-88 md:h-88 lg:w-96 lg:h-96">
-                    <!-- 数独格子将通过JavaScript动态生成 -->
-                </div>
-            </div>
-            
-            <!-- 控制面板 -->
-            <div class="flex flex-col gap-6">
-                <!-- 数字键盘 -->
-                <div class="card-cartoon p-6 bg-gradient-to-br from-cartoon-blue to-cartoon-purple">
-                    <div class="text-xl font-bold text-white mb-4 text-center">
-                        <i class="fa fa-keyboard-o mr-2"></i>数字小键盘
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <button onclick="inputNumber(1)" class="btn-number bg-white text-cartoon-blue p-6 rounded-xl text-3xl font-bold shadow-lg hover:shadow-xl">
-                            1️⃣
-                        </button>
-                        <button onclick="inputNumber(2)" class="btn-number bg-white text-cartoon-pink p-6 rounded-xl text-3xl font-bold shadow-lg hover:shadow-xl">
-                            2️⃣
-                        </button>
-                        <button onclick="inputNumber(3)" class="btn-number bg-white text-cartoon-green p-6 rounded-xl text-3xl font-bold shadow-lg hover:shadow-xl">
-                            3️⃣
-                        </button>
-                        <button onclick="inputNumber(4)" class="btn-number bg-white text-cartoon-orange p-6 rounded-xl text-3xl font-bold shadow-lg hover:shadow-xl">
-                            4️⃣
-                        </button>
+                    
+                    <!-- 游戏信息 -->
+                    <div class="status-item card-cartoon p-4 bg-white border-3 border-cartoon-purple animate-float" style="animation-delay: 1s;">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 bg-gradient-to-r from-cartoon-pink to-cartoon-purple rounded-full flex items-center justify-center animate-sparkle">
+                                <i class="fa fa-star text-xl text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-600 font-semibold">完成进度</div>
+                                <div id="progress" class="text-2xl font-bold text-cartoon-pink">0/16</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- 功能按钮 -->
-                <div class="card-cartoon p-6 bg-white border-4 border-cartoon-yellow">
-                    <div class="space-y-4">
-                        <button onclick="newGame()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-green to-cartoon-blue text-white py-4 px-6 rounded-xl text-lg font-bold hover:shadow-xl transition-all">
-                            🎮 开始新游戏
-                        </button>
-                        <button onclick="clearCell()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-orange to-cartoon-pink text-white py-4 px-6 rounded-xl text-lg font-bold hover:shadow-xl transition-all">
-                            🧽 清除数字
-                        </button>
-                        <button onclick="getHint()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-purple to-cartoon-pink text-white py-4 px-6 rounded-xl text-lg font-bold hover:shadow-xl transition-all">
-                            💡 提示帮助
-                        </button>
-                        <button onclick="checkSolution()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-yellow to-cartoon-orange text-white py-4 px-6 rounded-xl text-lg font-bold hover:shadow-xl transition-all">
-                            ✨ 检查答案
-                        </button>
+                <!-- 主要游戏区域 -->
+                <div class="main-game flex flex-col lg:flex-row justify-center items-start gap-6">
+                    <!-- 数独棋盘 -->
+                    <div class="sudoku-grid p-4">
+                        <div id="sudokuBoard" class="grid-4x4 w-full max-w-xs mx-auto">
+                            <!-- 数独格子将通过JavaScript动态生成 -->
+                        </div>
                     </div>
-                </div>
-                
-                <!-- 游戏规则 -->
-                <div class="card-cartoon p-6 bg-white border-4 border-cartoon-green">
-                    <div class="text-xl font-bold text-cartoon-green mb-4">
-                        <i class="fa fa-book mr-2"></i>游戏规则
-                    </div>
-                    <div class="text-gray-700 space-y-3 font-semibold">
-                        <p class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-cartoon-blue rounded-full flex items-center justify-center text-white text-sm">1</span>
-                            每行、每列、每个2×2小宫格都要填入数字1-4
-                        </p>
-                        <p class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-cartoon-pink rounded-full flex items-center justify-center text-white text-sm">2</span>
-                            每个数字在每行、每列、每个小宫格中只能出现一次
-                        </p>
-                        <p class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-cartoon-green rounded-full flex items-center justify-center text-white text-sm">3</span>
-                            点击格子，然后点击数字按钮填入数字
-                        </p>
-                        <p class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-cartoon-yellow rounded-full flex items-center justify-center text-white text-sm">4</span>
-                            加油！你一定可以完成的！💪
-                        </p>
+                    
+                    <!-- 控制面板 -->
+                    <div class="control-panel flex flex-col gap-4">
+                        <!-- 数字键盘 -->
+                        <div class="card-cartoon p-4 bg-gradient-to-br from-cartoon-blue to-cartoon-purple">
+                            <div class="text-lg font-bold text-white mb-3 text-center">
+                                <i class="fa fa-keyboard-o mr-2"></i>数字小键盘
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="inputNumber(1)" class="btn-number bg-white text-cartoon-blue p-4 rounded-xl text-2xl font-bold shadow-lg hover:shadow-xl">
+                                    1️⃣
+                                </button>
+                                <button onclick="inputNumber(2)" class="btn-number bg-white text-cartoon-pink p-4 rounded-xl text-2xl font-bold shadow-lg hover:shadow-xl">
+                                    2️⃣
+                                </button>
+                                <button onclick="inputNumber(3)" class="btn-number bg-white text-cartoon-green p-4 rounded-xl text-2xl font-bold shadow-lg hover:shadow-xl">
+                                    3️⃣
+                                </button>
+                                <button onclick="inputNumber(4)" class="btn-number bg-white text-cartoon-orange p-4 rounded-xl text-2xl font-bold shadow-lg hover:shadow-xl">
+                                    4️⃣
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 功能按钮 -->
+                        <div class="card-cartoon p-4 bg-white border-3 border-cartoon-yellow">
+                            <div class="space-y-3">
+                                <button onclick="newGame()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-green to-cartoon-blue text-white py-3 px-4 rounded-xl text-base font-bold hover:shadow-xl transition-all">
+                                    🎮 开始新游戏
+                                </button>
+                                <button onclick="clearCell()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-orange to-cartoon-pink text-white py-3 px-4 rounded-xl text-base font-bold hover:shadow-xl transition-all">
+                                    🧽 清除数字
+                                </button>
+                                <button onclick="getHint()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-purple to-cartoon-pink text-white py-3 px-4 rounded-xl text-base font-bold hover:shadow-xl transition-all">
+                                    💡 提示帮助
+                                </button>
+                                <button onclick="checkSolution()" class="btn-cartoon w-full bg-gradient-to-r from-cartoon-yellow to-cartoon-orange text-white py-3 px-4 rounded-xl text-base font-bold hover:shadow-xl transition-all">
+                                    ✨ 检查答案
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 游戏规则 -->
+                        <div class="card-cartoon p-4 bg-white border-3 border-cartoon-green">
+                            <div class="text-lg font-bold text-cartoon-green mb-3">
+                                <i class="fa fa-book mr-2"></i>游戏规则
+                            </div>
+                            <div class="text-gray-700 space-y-2 font-semibold text-sm">
+                                <p class="flex items-center gap-2">
+                                    <span class="w-5 h-5 bg-cartoon-blue rounded-full flex items-center justify-center text-white text-xs">1</span>
+                                    每行、每列、每个2×2小宫格都要填入数字1-4
+                                </p>
+                                <p class="flex items-center gap-2">
+                                    <span class="w-5 h-5 bg-cartoon-pink rounded-full flex items-center justify-center text-white text-xs">2</span>
+                                    每个数字在每行、每列、每个小宫格中只能出现一次
+                                </p>
+                                <p class="flex items-center gap-2">
+                                    <span class="w-5 h-5 bg-cartoon-green rounded-full flex items-center justify-center text-white text-xs">3</span>
+                                    点击格子，然后点击数字按钮填入数字
+                                </p>
+                                <p class="flex items-center gap-2">
+                                    <span class="w-5 h-5 bg-cartoon-yellow rounded-full flex items-center justify-center text-white text-xs">4</span>
+                                    加油！你一定可以完成的！💪
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- 胜利弹窗 -->
-        <div id="winModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="card-cartoon p-8 max-w-md mx-4 text-center animate-bounce-soft border-6 border-cartoon-yellow">
-                <div class="text-8xl mb-6 animate-sparkle">🎉</div>
-                <h2 class="text-4xl font-bold bg-gradient-to-r from-cartoon-pink to-cartoon-orange bg-clip-text text-transparent mb-4">
-                    恭喜完成！
-                </h2>
-                <p class="text-xl text-gray-700 mb-6 font-semibold">
-                    你真是数独小天才！🌟
-                </p>
-                <div class="bg-gradient-to-r from-cartoon-blue to-cartoon-purple rounded-2xl p-6 mb-6 text-white">
-                    <div class="text-lg font-semibold mb-2">🏆 本次成绩</div>
-                    <div class="text-3xl font-bold" id="finalTime">00:00</div>
-                </div>
-                <button onclick="closeWinModal()" class="btn-cartoon bg-gradient-to-r from-cartoon-green to-cartoon-blue text-white px-10 py-4 rounded-2xl text-xl font-bold hover:shadow-xl transition-all">
-                    🎯 再来一局
-                </button>
+    </div>
+    
+    <!-- 胜利弹窗 -->
+    <div id="winModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="card-cartoon p-6 max-w-md mx-4 text-center animate-bounce-soft border-4 border-cartoon-yellow">
+            <div class="text-6xl mb-4 animate-sparkle">🎉</div>
+            <h2 class="text-3xl font-bold bg-gradient-to-r from-cartoon-pink to-cartoon-orange bg-clip-text text-transparent mb-3">
+                恭喜完成！
+            </h2>
+            <p class="text-lg text-gray-700 mb-4 font-semibold">
+                你真是数独小天才！🌟
+            </p>
+            <div class="bg-gradient-to-r from-cartoon-blue to-cartoon-purple rounded-2xl p-4 mb-4 text-white">
+                <div class="text-base font-semibold mb-1">🏆 本次成绩</div>
+                <div class="text-2xl font-bold" id="finalTime">00:00</div>
             </div>
+            <button onclick="closeWinModal()" class="btn-cartoon bg-gradient-to-r from-cartoon-green to-cartoon-blue text-white px-8 py-3 rounded-2xl text-lg font-bold hover:shadow-xl transition-all">
+                🎯 再来一局
+            </button>
         </div>
     </div>
 
@@ -632,7 +935,7 @@
             for (let i = 0; i < 4; i++) {
                 for (let j = 0; j < 4; j++) {
                     const cell = document.createElement('div');
-                    cell.className = 'sudoku-cell flex items-center justify-center text-3xl font-bold border-3 cursor-pointer hover:bg-gray-50 animate-bounce-soft';
+                    cell.className = 'sudoku-cell flex items-center justify-center text-2xl font-bold border-3 cursor-pointer hover:bg-gray-50 animate-bounce-soft';
                     cell.dataset.row = i;
                     cell.dataset.col = j;
                     
