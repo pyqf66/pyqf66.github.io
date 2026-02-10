@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>极简智能吉他调音器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+        }
+        
+        h1 {
+            margin-bottom: 15px;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+        }
+        
+        .tuner-display {
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .current-note {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            font-weight: bold;
+            margin-bottom: 8px;
+            height: 40px;
+            min-height: 40px;
+        }
+        
+        .detected-note {
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #fbc531; /* 黄色显示实际检测到的音符 */
+            height: 35px;
+            min-height: 35px;
+        }
+        
+        .frequency {
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        
+        .deviation {
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        
+        .deviation.low {
+            color: #ff6b81; /* 红色 - 音低 */
+        }
+        
+        .deviation.high {
+            color: #3742fa; /* 蓝色 - 音高 */
+        }
+        
+        .deviation.correct {
+            color: #2ed573; /* 绿色 - 准确 */
+        }
+        
+        .stability-meter {
+            width: 100%;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        
+        .stability-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff6b81, #fbc531, #2ed573);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+        
+        .stability-text {
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+        
+        .tuner-gauge {
+            width: 100%;
+            max-width: 300px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin: 15px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gauge-fill {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #ff6b81 0%, #fbc531 50%, #2ed573 100%);
+            border-radius: 12px;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: white;
+            z-index: 2;
+        }
+        
+        .gauge-pointer {
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: white;
+            border-radius: 3px;
+            transform: translateX(-50%);
+            z-index: 3;
+            transition: all 0.1s ease-out;
+        }
+        
+        .note-indicators {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            padding: 0 10px;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
+        }
+        
+        .note-indicator {
+            opacity: 0.7;
+        }
+        
+        .controls {
+            margin: 15px 0;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+            margin: 0 5px;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            min-height: 40px;
+        }
+        
+        button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 12px;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            opacity: 0.8;
+        }
+        
+        .guitar-strings {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        .string {
+            width: clamp(35px, 8vw, 45px);
+            height: clamp(35px, 8vw, 45px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        
+        .string:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .string.selected {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-color: #fff;
+            color: #333;
+            box-shadow: 0 0 15px rgba(255, 154, 158, 0.7);
+            transform: scale(1.1);
+        }
+        
+        .string.active {
+            background: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        
+        .accuracy {
+            margin-top: 12px;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            font-weight: bold;
+        }
+        
+        .accuracy.perfect {
+            color: #2ed573;
+        }
+        
+        .accuracy.close {
+            color: #fbc531;
+        }
+        
+        .accuracy.far {
+            color: #ff6b81;
+        }
+        
+        .selected-string-info {
+            margin-top: 12px;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            opacity: 0.9;
+        }
+        
+        .direction-hint {
+            margin-top: 8px;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+        }
+        
+        .direction-hint.low {
+            color: #ff6b81;
+        }
+        
+        .direction-hint.high {
+            color: #3742fa;
+        }
+        
+        .confidence-meter {
+            margin-top: 8px;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
+        }
+        
+        .gauge-labels {
+            margin-top: 10px;
+        }
+        
+        .gauge-labels div {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
+        }
+        
+        .chord-display {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            font-size: clamp(0.9rem, 3vw, 1rem);
+        }
+        
+        .chord-name {
+            font-weight: bold;
+            color: #fbc531;
+            margin-bottom: 5px;
+        }
+        
+        .chord-notes {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .chord-note {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 5px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .tuner-gauge {
+                height: 20px;
+            }
+            
+            .gauge-pointer {
+                height: 100%;
+            }
+            
+            .string {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+            
+            button {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+                min-width: 70px;
+                min-height: 36px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+            
+            .current-note {
+                font-size: 1.8rem;
+            }
+            
+            .detected-note {
+                font-size: 1.5rem;
+            }
+            
+            .tuner-gauge {
+                height: 18px;
+            }
+            
+            .gauge-pointer {
+                height: 100%;
+            }
+            
+            .string {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            .guitar-strings {
+                gap: 4px;
+            }
+            
+            button {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+                min-width: 60px;
+                min-height: 32px;
+            }
+        }
+        
+        /* 平板适配 */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .string {
+                width: 42px;
+                height: 42px;
+                font-size: 1.05rem;
+            }
+            
+            .tuner-gauge {
+                height: 22px;
+            }
+        }
+        
+        /* 桌面端适配 */
+        @media (min-width: 1025px) {
+            .container {
+                padding: 30px;
+            }
+            
+            .string {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+            
+            .tuner-gauge {
+                height: 24px;
+            }
+        }
+        
+        /* 横屏适配 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .container {
+                padding: 10px;
+                margin: 5px;
+            }
+            
+            .tuner-display {
+                margin: 10px 0;
+            }
+            
+            .string {
+                width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* 防止缩放 */
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎸 极简吉他调音器</h1>
+        
+        <div class="tuner-display">
+            <div class="current-note" id="currentNote">-</div>
+            <div class="detected-note" id="detectedNote">-</div>
+            <div class="frequency" id="frequency">频率: - Hz</div>
+            <div class="deviation" id="deviation">偏差: -</div>
+            
+            <div class="stability-meter">
+                <div class="stability-fill" id="stabilityFill"></div>
+            </div>
+            <div class="stability-text" id="stabilityText">等待稳定音高...</div>
+            
+            <div class="tuner-gauge">
+                <div class="gauge-center"></div>
+                <div class="gauge-pointer" id="gaugePointer" style="left: 50%;"></div>
+                <div class="gauge-fill" id="gaugeFill" style="width: 50%;"></div>
+            </div>
+            
+            <div class="note-indicators">
+                <span class="note-indicator">偏低</span>
+                <span class="note-indicator">准确</span>
+                <span class="note-indicator">偏高</span>
+            </div>
+            
+            <div class="accuracy" id="accuracy">准备就绪</div>
+            <div class="direction-hint" id="directionHint">请开始调音</div>
+            <div class="confidence-meter" id="confidenceMeter">稳定性: 0%</div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">开始调音</button>
+            <button id="stopBtn" disabled>停止</button>
+        </div>
+        
+        <div class="status" id="status">点击开始按钮启用麦克风</div>
+        
+        <div class="selected-string-info" id="selectedStringInfo">请选择要调音的琴弦</div>
+        
+        <div class="chord-display">
+            <div class="chord-name">当前和弦:</div>
+            <div class="chord-notes" id="chordNotes">-</div>
+        </div>
+        
+        <div class="gauge-labels">
+            <div>
+                <span>音低</span>
+                <span>准确</span>
+                <span>音高</span>
+            </div>
+        </div>
+        
+        <div class="guitar-strings">
+            <div class="string" data-note="E2" data-name="低音E">E₂</div>
+            <div class="string" data-note="A2" data-name="A">A₂</div>
+            <div class="string" data-note="D3" data-name="D">D₃</div>
+            <div class="string" data-note="G3" data-name="G">G₃</div>
+            <div class="string" data-note="B3" data-name="B">B₃</div>
+            <div class="string" data-note="E4" data-name="高音E">E₄</div>
+        </div>
+    </div>
+
+    <script>
+        class GuitarTuner {
+            constructor() {
+                this.audioContext = null;
+                this.analyser = null;
+                this.microphone = null;
+                this.scriptProcessor = null;
+                
+                this.targetFrequencies = {
+                    'E2': 82.41,
+                    'A2': 110.00,
+                    'D3': 146.83,
+                    'G3': 196.00,
+                    'B3': 246.94,
+                    'E4': 329.63
+                };
+                
+                this.currentFrequency = 0;
+                this.closestNote = '-';
+                this.detectedNote = '-';
+                this.isRunning = false;
+                this.selectedString = null;
+                
+                // 稳定性检测相关变量
+                this.frequencyHistory = [];
+                this.stabilityThreshold = 5;
+                this.frequencyVarianceThreshold = 2;
+                this.stableFrequency = 0;
+                this.stabilityCount = 0;
+                this.isStable = false;
+                
+                // 和弦检测相关
+                this.chordDetectionHistory = [];
+                this.chordNotes = new Set();
+                
+                this.initializeElements();
+                this.bindEvents();
+                
+                // 启动实时检测定时器
+                this.startRealTimeDetection();
+            }
+            
+            initializeElements() {
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.currentNoteEl = document.getElementById('currentNote');
+                this.detectedNoteEl = document.getElementById('detectedNote');
+                this.frequencyEl = document.getElementById('frequency');
+                this.deviationEl = document.getElementById('deviation');
+                this.accuracyEl = document.getElementById('accuracy');
+                this.statusEl = document.getElementById('status');
+                this.stringElements = document.querySelectorAll('.string');
+                this.selectedStringInfo = document.getElementById('selectedStringInfo');
+                this.directionHint = document.getElementById('directionHint');
+                this.gaugePointer = document.getElementById('gaugePointer');
+                this.gaugeFill = document.getElementById('gaugeFill');
+                this.stabilityFill = document.getElementById('stabilityFill');
+                this.stabilityText = document.getElementById('stabilityText');
+                this.confidenceMeter = document.getElementById('confidenceMeter');
+                this.chordNotesEl = document.getElementById('chordNotes');
+            }
+            
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.stopBtn.addEventListener('click', () => this.stop());
+                
+                // 为琴弦添加点击事件
+                this.stringElements.forEach((el, index) => {
+                    el.addEventListener('click', () => {
+                        this.selectString(el.dataset.note, el.dataset.name, index);
+                    });
+                });
+                
+                // 页面可见性变化时暂停/恢复
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && this.isRunning) {
+                        this.pause();
+                    }
+                });
+            }
+            
+            startRealTimeDetection() {
+                // 即使没有开启麦克风也持续检测音频
+                if (navigator.mediaDevices && !this.isRunning) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // 每1000ms更新一次和弦显示
+                setInterval(() => {
+                    if (this.frequencyHistory.length > 0) {
+                        this.updateChordDisplay();
+                    }
+                }, 1000);
+            }
+            
+            async start() {
+                try {
+                    this.statusEl.textContent = '正在启动麦克风...';
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: { 
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        } 
+                    });
+                    
+                    this.setupAudioContext(stream);
+                    this.startBtn.disabled = true;
+                    this.stopBtn.disabled = false;
+                    this.statusEl.textContent = '麦克风已启用，开始分析音频...';
+                    this.isRunning = true;
+                    
+                    // 重置稳定性相关变量
+                    this.frequencyHistory = [];
+                    this.stableFrequency = 0;
+                    this.stabilityCount = 0;
+                    this.isStable = false;
+                    this.chordNotes.clear();
+                    this.updateChordDisplay();
+                    this.updateStabilityDisplay(0, "等待稳定音高...");
+                    
+                } catch (error) {
+                    console.error('无法访问麦克风:', error);
+                    this.statusEl.textContent = '无法访问麦克风，请检查权限设置';
+                }
+            }
+            
+            setupAudioContext(stream) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.analyser = this.audioContext.createAnalyser();
+                this.microphone = this.audioContext.createMediaStreamSource(stream);
+                this.scriptProcessor = this.audioContext.createScriptProcessor(2048, 1, 1);
+                
+                this.analyser.smoothingTimeConstant = 0.8;
+                this.analyser.fftSize = 4096;
+                
+                this.microphone.connect(this.analyser);
+                this.analyser.connect(this.scriptProcessor);
+                this.scriptProcessor.connect(this.audioContext.destination);
+                
+                this.scriptProcessor.onaudioprocess = (event) => {
+                    if (!this.isRunning) return;
+                    this.processAudio(event.inputBuffer.getChannelData(0));
+                };
+            }
+            
+            processAudio(buffer) {
+                const frequencies = this.getFrequencies(buffer);
+                if (frequencies && frequencies.length > 0) {
+                    const dominantFreq = this.getDominantFrequency(frequencies);
+                    if (dominantFreq > 0) {
+                        this.handleFrequency(dominantFreq);
+                    }
+                }
+            }
+            
+            handleFrequency(frequency) {
+                // 将新频率添加到历史记录
+                this.frequencyHistory.push({
+                    freq: frequency,
+                    timestamp: Date.now()
+                });
+                
+                // 限制历史记录长度（保留最近2秒的数据）
+                const now = Date.now();
+                this.frequencyHistory = this.frequencyHistory.filter(item => 
+                    now - item.timestamp < 2000
+                );
+                
+                // 检查稳定性
+                this.checkStability();
+                
+                // 更新和弦检测
+                this.updateChordDetection(frequency);
+                
+                // 更新显示
+                this.updateDisplay();
+            }
+            
+            updateChordDetection(frequency) {
+                // 将频率转换为音符
+                const note = this.frequencyToNote(frequency).note;
+                if (note !== '-' && note !== 'noise') {
+                    // 添加到和弦音符集合
+                    this.chordNotes.add(note);
+                    
+                    // 限制和弦音符数量（最多同时显示6个音符）
+                    if (this.chordNotes.size > 6) {
+                        // 移除最早添加的音符
+                        const firstNote = this.chordNotes.values().next().value;
+                        this.chordNotes.delete(firstNote);
+                    }
+                }
+            }
+            
+            updateChordDisplay() {
+                // 清理过期的音符（超过3秒没有检测到的音符）
+                const now = Date.now();
+                const activeFrequencies = this.frequencyHistory.map(item => item.freq);
+                
+                // 只保留最近检测到的音符
+                const currentNotes = new Set();
+                activeFrequencies.forEach(freq => {
+                    const note = this.frequencyToNote(freq).note;
+                    if (note !== '-' && note !== 'noise') {
+                        currentNotes.add(note);
+                    }
+                });
+                
+                this.chordNotes = currentNotes;
+                
+                // 更新显示
+                if (this.chordNotes.size > 0) {
+                    const notesArray = Array.from(this.chordNotes);
+                    this.chordNotesEl.innerHTML = notesArray.map(note => 
+                        `<span class="chord-note">${note}</span>`
+                    ).join('');
+                } else {
+                    this.chordNotesEl.textContent = '-';
+                }
+            }
+            
+            checkStability() {
+                if (this.frequencyHistory.length < this.stabilityThreshold) {
+                    this.isStable = false;
+                    this.stabilityCount = 0;
+                    return;
+                }
+                
+                // 获取最近的频率数据
+                const recentFrequencies = this.frequencyHistory.slice(-this.stabilityThreshold).map(item => item.freq);
+                const avgFreq = recentFrequencies.reduce((sum, freq) => sum + freq, 0) / recentFrequencies.length;
+                
+                // 计算方差
+                const variance = recentFrequencies.reduce((sum, freq) => sum + Math.pow(freq - avgFreq, 2), 0) / recentFrequencies.length;
+                const stdDev = Math.sqrt(variance);
+                
+                // 如果标准差小于阈值，则认为频率稳定
+                if (stdDev < this.frequencyVarianceThreshold) {
+                    this.stabilityCount++;
+                    if (this.stabilityCount >= 3) { // 连续3次稳定则确认
+                        this.isStable = true;
+                        this.stableFrequency = avgFreq;
+                    }
+                } else {
+                    this.stabilityCount = 0;
+                    this.isStable = false;
+                }
+                
+                // 更新稳定性显示
+                const stabilityPercent = Math.min(100, (this.stabilityCount / 3) * 100);
+                let stabilityMessage = "音高不稳定";
+                if (this.stabilityCount >= 3) {
+                    stabilityMessage = "音高稳定 ✓";
+                } else if (this.stabilityCount >= 1) {
+                    stabilityMessage = "音高接近稳定...";
+                }
+                
+                this.updateStabilityDisplay(stabilityPercent, stabilityMessage);
+            }
+            
+            updateStabilityDisplay(percent, message) {
+                this.stabilityFill.style.width = `${percent}%`;
+                this.stabilityText.textContent = message;
+                this.confidenceMeter.textContent = `稳定性: ${Math.round(percent)}%`;
+            }
+            
+            getFrequencies(buffer) {
+                // 使用自相关函数来估计基频
+                const size = buffer.length;
+                let rms = 0;
+                
+                // 计算均方根值
+                for (let i = 0; i < size; i++) {
+                    rms += buffer[i] * buffer[i];
+                }
+                rms = Math.sqrt(rms / size);
+                
+                if (rms < 0.01) return null; // 信号太弱
+                
+                // 自相关计算
+                const autocorrelation = new Float32Array(size);
+                for (let lag = 0; lag < size; lag++) {
+                    let sum = 0;
+                    for (let i = 0; i < size - lag; i++) {
+                        sum += buffer[i] * buffer[i + lag];
+                    }
+                    autocorrelation[lag] = sum;
+                }
+                
+                // 找到第一个峰值
+                let maxPeak = 0;
+                let maxIndex = 0;
+                
+                for (let i = 1; i < size; i++) {
+                    if (autocorrelation[i] > autocorrelation[i - 1] && 
+                        autocorrelation[i] > autocorrelation[i + 1]) {
+                        if (autocorrelation[i] > maxPeak) {
+                            maxPeak = autocorrelation[i];
+                            maxIndex = i;
+                        }
+                    }
+                }
+                
+                if (maxIndex > 0) {
+                    const frequency = this.audioContext.sampleRate / maxIndex;
+                    return [frequency];
+                }
+                
+                return null;
+            }
+            
+            getDominantFrequency(frequencies) {
+                if (!frequencies || frequencies.length === 0) return 0;
+                return frequencies[0];
+            }
+            
+            updateDisplay() {
+                // 实时显示当前检测到的频率信息
+                if (this.frequencyHistory.length > 0) {
+                    const currentFreq = this.frequencyHistory[this.frequencyHistory.length - 1].freq;
+                    const noteInfo = this.frequencyToNote(currentFreq);
+                    
+                    // 第一行显示最接近的标准音符（E2/A2/D3/G3/B3/E4）
+                    this.closestNote = noteInfo.note;
+                    this.currentNoteEl.textContent = this.closestNote;
+                    
+                    // 第二行显示实际检测到的音符（包括升降号等）
+                    this.detectedNote = this.frequencyToMidiNote(currentFreq);
+                    this.detectedNoteEl.textContent = this.detectedNote;
+                    
+                    this.frequencyEl.textContent = `频率: ${currentFreq.toFixed(2)} Hz`;
+                    
+                    // 更新偏差显示
+                    this.updateDeviation(noteInfo.deviation, noteInfo.targetFreq);
+                    
+                    // 更新仪表盘
+                    this.updateGauge(noteInfo.deviation);
+                    
+                    // 更新准确性显示
+                    this.updateAccuracy(noteInfo.deviation);
+                    
+                    // 高亮当前最接近的琴弦
+                    this.highlightClosestString(this.closestNote);
+                    
+                    // 如果选择了琴弦，显示方向提示
+                    if (this.selectedString) {
+                        this.updateDirectionHint(noteInfo.deviation);
+                    } else {
+                        this.directionHint.textContent = '请先选择琴弦';
+                        this.directionHint.className = 'direction-hint';
+                    }
+                } else {
+                    // 如果没有检测到频率
+                    this.currentNoteEl.textContent = '-';
+                    this.detectedNoteEl.textContent = '-';
+                    this.frequencyEl.textContent = '频率: - Hz';
+                    this.deviationEl.textContent = '偏差: -';
+                    this.deviationEl.className = 'deviation';
+                    this.updateGauge(0);
+                    this.updateAccuracy(0);
+                    this.directionHint.textContent = this.selectedString ? '等待音频输入...' : '请先选择琴弦';
+                    this.directionHint.className = 'direction-hint';
+                    
+                    // 清除高亮
+                    this.stringElements.forEach(el => {
+                        if (!el.classList.contains('selected')) {
+                            el.classList.remove('active');
+                        }
+                    });
+                }
+            }
+            
+            frequencyToNote(frequency) {
+                if (frequency <= 0) return { note: '-', deviation: 0, targetFreq: 0 };
+                
+                // 计算最接近的标准音符
+                let closestNote = '';
+                let minDiff = Infinity;
+                let targetFreq = 0;
+                
+                for (const [note, freq] of Object.entries(this.targetFrequencies)) {
+                    const diff = Math.abs(freq - frequency);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestNote = note;
+                        targetFreq = freq;
+                    }
+                }
+                
+                const deviation = ((frequency - targetFreq) / targetFreq) * 100;
+                
+                return {
+                    note: closestNote,
+                    deviation: deviation,
+                    targetFreq: targetFreq
+                };
+            }
+            
+            // 新增方法：将频率转换为精确的MIDI音符名（带升降号）
+            frequencyToMidiNote(frequency) {
+                if (frequency <= 0) return '-';
+                
+                // MIDI音符编号计算公式
+                const midiNote = 69 + 12 * Math.log2(frequency / 440);
+                const noteNumber = Math.round(midiNote);
+                
+                // 音符名称数组（C, C#, D, D#, E, F, F#, G, G#, A, A#, B）
+                const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+                
+                // 计算八度和音符名
+                const octave = Math.floor(noteNumber / 12) - 1;
+                const noteIndex = noteNumber % 12;
+                const noteName = noteNames[noteIndex];
+                
+                // 计算实际音分偏差（cents）
+                const actualFreq = 440 * Math.pow(2, (midiNote - 69) / 12);
+                const cents = Math.round(1200 * Math.log2(frequency / actualFreq));
+                
+                // 如果偏差很小，直接返回音符名
+                if (Math.abs(cents) <= 10) {
+                    return `${noteName}${octave}`;
+                } else {
+                    // 显示带有偏差的音符名
+                    const deviationSymbol = cents >= 0 ? '+' : '';
+                    return `${noteName}${octave} (${deviationSymbol}${cents}¢)`;
+                }
+            }
+            
+            updateDeviation(deviation, targetFreq) {
+                if (deviation === 0) {
+                    this.deviationEl.textContent = '完美匹配!';
+                    this.deviationEl.className = 'deviation correct';
+                } else if (deviation < 0) {
+                    this.deviationEl.textContent = `偏低 ${(Math.abs(deviation)).toFixed(2)}%`;
+                    this.deviationEl.className = 'deviation low';
+                } else {
+                    this.deviationEl.textContent = `偏高 ${(deviation).toFixed(2)}%`;
+                    this.deviationEl.className = 'deviation high';
+                }
+            }
+            
+            updateGauge(deviation) {
+                // 计算指针位置 (从-100%到100%，对应从0%到100%的仪表盘位置)
+                let position = 50 + (deviation * 0.5); // 偏差范围-100%到+100%，映射到0%-100%
+                position = Math.max(0, Math.min(100, position));
+                
+                // 更新水平仪表盘指针
+                this.gaugePointer.style.left = `${position}%`;
+                
+                // 更新填充宽度以显示当前区域
+                if (deviation < -5) {
+                    // 音偏低区域
+                    this.gaugeFill.style.width = `${position}%`;
+                    this.gaugeFill.style.background = 'linear-gradient(90deg, #ff6b81 0%, #ff6b81 50%, #fbc531 100%)';
+                } else if (deviation > 5) {
+                    // 音偏高区域
+                    this.gaugeFill.style.width = `${position}%`;
+                    this.gaugeFill.style.background = 'linear-gradient(90deg, #ff6b81 0%, #fbc531 50%, #2ed573 50%, #2ed573 100%)';
+                } else {
+                    // 准确区域
+                    this.gaugeFill.style.width = `${position}%`;
+                    this.gaugeFill.style.background = 'linear-gradient(90deg, #ff6b81 0%, #fbc531 50%, #2ed573 100%)';
+                }
+            }
+            
+            updateDirectionHint(deviation) {
+                if (deviation < -1) {
+                    this.directionHint.textContent = '需要提高音高 → 拧紧琴弦';
+                    this.directionHint.className = 'direction-hint low';
+                } else if (deviation > 1) {
+                    this.directionHint.textContent = '需要降低音高 → 放松琴弦';
+                    this.directionHint.className = 'direction-hint high';
+                } else {
+                    this.directionHint.textContent = '音准完美!';
+                    this.directionHint.className = 'direction-hint';
+                }
+            }
+            
+            updateAccuracy(deviation) {
+                if (Math.abs(deviation) < 1) {
+                    this.accuracyEl.textContent = '✅ 非常准确';
+                    this.accuracyEl.className = 'accuracy perfect';
+                } else if (Math.abs(deviation) < 5) {
+                    this.accuracyEl.textContent = '⚠️ 接近标准';
+                    this.accuracyEl.className = 'accuracy close';
+                } else {
+                    this.accuracyEl.textContent = '❌ 需要调整';
+                    this.accuracyEl.className = 'accuracy far';
+                }
+            }
+            
+            highlightClosestString(currentNote) {
+                this.stringElements.forEach(el => {
+                    if (el.dataset.note === currentNote && !el.classList.contains('selected')) {
+                        el.classList.add('active');
+                    } else if (el.classList.contains('active') && !el.classList.contains('selected')) {
+                        el.classList.remove('active');
+                    }
+                });
+            }
+            
+            selectString(note, name, index) {
+                // 清除之前的选择状态
+                this.stringElements.forEach(el => {
+                    el.classList.remove('selected');
+                });
+                
+                // 设置当前选择状态
+                this.stringElements[index].classList.add('selected');
+                
+                // 更新状态信息
+                this.selectedString = note;
+                this.selectedStringInfo.textContent = `正在调音: ${name} 弦 (${note}) - 目标频率: ${this.targetFrequencies[note]} Hz`;
+                
+                // 更新状态栏
+                this.statusEl.textContent = `已选择${name}弦，请弹奏该弦进行调音`;
+                
+                // 重置稳定性检测
+                this.frequencyHistory = [];
+                this.stableFrequency = 0;
+                this.stabilityCount = 0;
+                this.isStable = false;
+                this.updateStabilityDisplay(0, "等待稳定音高...");
+            }
+            
+            pause() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    this.statusEl.textContent = '页面不可见，已暂停';
+                }
+            }
+            
+            stop() {
+                this.isRunning = false;
+                
+                if (this.scriptProcessor) {
+                    this.scriptProcessor.disconnect();
+                }
+                
+                if (this.microphone) {
+                    this.microphone.disconnect();
+                }
+                
+                if (this.analyser) {
+                    this.analyser.disconnect();
+                }
+                
+                // 关闭所有音频流轨道
+                if (this.audioContext) {
+                    this.audioContext.close();
+                }
+                
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.statusEl.textContent = '已停止';
+                this.currentNoteEl.textContent = '-';
+                this.detectedNoteEl.textContent = '-';
+                this.frequencyEl.textContent = '频率: - Hz';
+                this.deviationEl.textContent = '偏差: -';
+                this.deviationEl.className = 'deviation';
+                this.accuracyEl.textContent = '准备就绪';
+                this.accuracyEl.className = 'accuracy';
+                this.directionHint.textContent = '请先选择琴弦并开始调音';
+                this.directionHint.className = 'direction-hint';
+                
+                // 重置仪表盘
+                this.gaugePointer.style.left = '50%';
+                this.gaugeFill.style.width = '50%';
+                this.gaugeFill.style.background = 'linear-gradient(90deg, #ff6b81 0%, #fbc531 50%, #2ed573 100%)';
+                
+                // 重置稳定性显示
+                this.updateStabilityDisplay(0, "等待稳定音高...");
+                
+                this.stringElements.forEach(el => {
+                    el.classList.remove('active');
+                    el.classList.remove('selected');
+                });
+                
+                this.selectedStringInfo.textContent = '请选择要调音的琴弦';
+                
+                // 清空频率历史
+                this.frequencyHistory = [];
+                this.chordNotes.clear();
+                this.chordNotesEl.textContent = '-';
+            }
+        }
+        
+        // 初始化调音器
+        document.addEventListener('DOMContentLoaded', () => {
+            const tuner = new GuitarTuner();
+            window.tunerInstance = tuner;
+        });
+        
+        // 处理页面可见性变化
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // 页面重新可见时，如果之前在运行，恢复运行
+                if (window.tunerInstance && window.tunerInstance.isPaused) {
+                    window.tunerInstance.resume();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
