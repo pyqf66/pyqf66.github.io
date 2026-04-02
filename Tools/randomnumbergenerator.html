@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机数生成器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #e0f7fa, #f5f9f3);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, #81c784, #a5d6a7, #81c784);
+            border-radius: 20px 20px 0 0;
+        }
+        
+        h1 {
+            color: #43a047;
+            margin-bottom: 10px;
+            font-size: 26px;
+            position: relative;
+        }
+        
+        .subtitle {
+            color: #81c784;
+            margin-bottom: 25px;
+            font-size: 15px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 14px 20px;
+            font-size: 18px;
+            border: 2px solid #e0f2e9;
+            border-radius: 50px;
+            background-color: #f1f8e9;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="number"]:focus {
+            border-color: #a5d6a7;
+            box-shadow: 0 0 0 3px rgba(165, 214, 167, 0.3);
+        }
+        
+        button {
+            padding: 14px 35px;
+            font-size: 18px;
+            background: linear-gradient(90deg, #81c784, #a5d6a7);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(129, 199, 132, 0.3);
+            font-weight: 600;
+            letter-spacing: 1px;
+            width: 100%;
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(129, 199, 132, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #result {
+            font-size: 32px;
+            margin: 30px 0;
+            min-height: 50px;
+            color: #2e7d32;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            padding: 15px;
+            background-color: #f1f8e9;
+            border-radius: 12px;
+            display: inline-block;
+            min-width: 180px;
+            word-break: break-all;
+        }
+        
+        .error {
+            color: #e53935;
+            background-color: #ffebee !important;
+            font-size: 18px;
+        }
+        
+        .leaf-decoration {
+            position: absolute;
+            opacity: 0.1;
+            z-index: -1;
+        }
+        
+        .leaf-1 {
+            top: 20px;
+            left: 30px;
+            font-size: 80px;
+            transform: rotate(30deg);
+        }
+        
+        .leaf-2 {
+            bottom: 20px;
+            right: 30px;
+            font-size: 80px;
+            transform: rotate(-15deg);
+        }
+        
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #43a047;
+        }
+        
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 25px 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+                margin-bottom: 8px;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+            
+            .input-group {
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            
+            input[type="number"],
+            button {
+                padding: 12px 15px;
+                font-size: 16px;
+                max-width: 100%;
+            }
+            
+            #result {
+                font-size: 28px;
+                min-width: 150px;
+                padding: 12px;
+                margin: 25px 0;
+            }
+            
+            .leaf-decoration {
+                display: none;
+            }
+        }
+        
+        /* 针对非常小屏幕的额外优化 */
+        @media (max-width: 400px) {
+            .container {
+                padding: 20px 10px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            #result {
+                font-size: 24px;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="leaf-decoration leaf-1">🌿</div>
+        <div class="leaf-decoration leaf-2">🍃</div>
+        
+        <h1>🌱 随机数生成器</h1>
+        <p class="subtitle">输入一个正整数，生成1到该数之间的随机数</p>
+        
+        <div class="input-group">
+            <input type="number" id="maxNumber" placeholder="请输入最大值（正整数）" autofocus>
+            <button onclick="generateRandomNumber()">✨ 生成随机数</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 获取输入框和结果元素
+        const maxNumberInput = document.getElementById('maxNumber');
+        const resultDiv = document.getElementById('result');
+        
+        // 添加回车键事件监听
+        maxNumberInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                generateRandomNumber();
+            }
+        });
+        
+        // 生成随机数函数
+        function generateRandomNumber() {
+            // 清除之前的错误信息
+            resultDiv.className = '';
+            
+            // 获取输入的数值
+            const maxValue = parseInt(maxNumberInput.value);
+            
+            // 验证输入是否为正整数
+            if (isNaN(maxValue) || maxValue <= 0 || !Number.isInteger(parseFloat(maxNumberInput.value))) {
+                resultDiv.innerHTML = '⚠️ 请输入一个正整数！';
+                resultDiv.className = 'error';
+                
+                // 在小屏幕上增加滚动到结果区域的处理
+                if (window.innerWidth <= 500) {
+                    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+            
+            // 限制输入值不能过大，避免性能问题
+            if(maxValue > 1000000) {
+                resultDiv.innerHTML = '⚠️ 数字太大啦，请输入小于1,000,000的正整数';
+                resultDiv.className = 'error';
+                if (window.innerWidth <= 500) {
+                    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
+            }
+            
+            // 生成1到maxValue之间的随机整数
+            const randomNumber = Math.floor(Math.random() * maxValue) + 1;
+            
+            // 显示结果，增加动画效果
+            resultDiv.style.transform = 'scale(0.8)';
+            resultDiv.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                resultDiv.innerHTML = `🌸 ${randomNumber}`;
+                resultDiv.style.transform = 'scale(1)';
+                resultDiv.style.opacity = '1';
+                
+                // 在小屏幕上滚动到结果区域
+                if (window.innerWidth <= 500) {
+                    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
