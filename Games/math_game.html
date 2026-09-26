@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FFE9F3">
+<title>数学小勇士 · 10/20以内加减法</title>
+<style>
+:root{
+  --pink:#FF8FB1;
+  --blue:#6EC5FF;
+  --purple:#9B8AC4;
+  --yellow:#FFD166;
+  --dark:#4A3B6B;
+  --green:#4FB86A;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{
+  height:100%;margin:0;padding:0;overflow:hidden;
+  overscroll-behavior:none;
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif;
+  user-select:none;-webkit-user-select:none;
+  touch-action:manipulation;
+  -webkit-text-size-adjust:none;
+  color:var(--dark);
+}
+body{
+  background:linear-gradient(150deg,#FFE9F3 0%,#E8F4FF 45%,#FFF8DC 100%);
+  background-size:200% 200%;
+  animation:bgShift 16s ease-in-out infinite;
+}
+@keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* ---------- 背景装饰 ---------- */
+.deco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.deco span{position:absolute;opacity:.5;animation:float 7s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-20px) rotate(8deg)}}
+.deco span:nth-child(1){left:6%;top:8%;font-size:26px;animation-delay:0s;}
+.deco span:nth-child(2){left:82%;top:12%;font-size:22px;animation-delay:1.1s;}
+.deco span:nth-child(3){left:12%;top:74%;font-size:24px;animation-delay:2.3s;}
+.deco span:nth-child(4){left:76%;top:80%;font-size:28px;animation-delay:.6s;}
+.deco span:nth-child(5){left:46%;top:4%;font-size:20px;animation-delay:3.1s;}
+.deco span:nth-child(6){left:30%;top:88%;font-size:22px;animation-delay:1.8s;}
+
+#app{position:relative;width:100%;height:100%;height:100dvh;z-index:1;}
+
+/* ---------- 屏幕切换 ---------- */
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  opacity:0;pointer-events:none;
+  transform:scale(.94);
+  transition:opacity .28s ease,transform .28s ease;
+}
+.screen.active{opacity:1;pointer-events:auto;transform:scale(1);}
+
+/* ---------- 开始页 ---------- */
+#screen-start{justify-content:center;align-items:center;gap:10px;text-align:center;}
+.big-title{
+  font-size:clamp(26px,9vw,40px);
+  font-weight:900;letter-spacing:2px;margin:0;
+  color:#fff;
+  text-shadow:
+    -3px -3px 0 #FF8FB1, 3px -3px 0 #FF8FB1,
+    -3px 3px 0 #FF8FB1, 3px 3px 0 #FF8FB1,
+    0 8px 0 #FF8FB1,
+    0 14px 22px rgba(255,143,177,.45);
+  animation:titleBounce 2.2s ease-in-out infinite;
+}
+@keyframes titleBounce{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-9px) rotate(1.5deg)}}
+.subtitle{font-size:14px;color:#8B7BAF;font-weight:800;margin:0;letter-spacing:1px;}
+.mascot{font-size:50px;animation:titleBounce 1.8s ease-in-out infinite;line-height:1;}
+
+.type-select{
+  display:flex;gap:4px;justify-content:center;
+  background:#fff;border-radius:999px;padding:4px;
+  box-shadow:0 4px 0 rgba(155,138,196,.18), 0 8px 16px rgba(155,138,196,.12);
+  margin:4px 0 2px;
+}
+.type-btn{
+  border:none;border-radius:999px;
+  padding:8px 16px;font-size:14px;font-weight:900;
+  font-family:inherit;cursor:pointer;letter-spacing:.5px;
+  background:transparent;color:#8B7BAF;
+  transition:all .18s;
+  white-space:nowrap;
+}
+.type-btn:active{transform:scale(.95);}
+.type-btn.active{
+  background:linear-gradient(180deg,#FFB0CB,#FF7FAE);
+  color:#fff;
+  box-shadow:0 3px 0 #E85C93;
+}
+
+.mode-btn{
+  border:none;border-radius:24px;
+  padding:14px 28px;
+  font-size:18px;font-weight:900;font-family:inherit;
+  color:#fff;cursor:pointer;letter-spacing:1px;
+  width:min(310px,86vw);
+  background:linear-gradient(180deg,#FFB0CB,#FF7FAE);
+  box-shadow:0 6px 0 #E85C93, 0 10px 20px rgba(232,92,147,.35);
+  transition:transform .1s,box-shadow .1s;
+}
+.mode-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #E85C93;}
+.mode-btn.blue{
+  background:linear-gradient(180deg,#93D6FF,#4FB4F5);
+  box-shadow:0 6px 0 #2E93D6, 0 10px 20px rgba(46,147,214,.35);
+}
+.mode-btn.blue:active{box-shadow:0 2px 0 #2E93D6;}
+.mode-btn.purple{
+  background:linear-gradient(180deg,#C8B6FF,#9B7EF0);
+  box-shadow:0 6px 0 #7B5FD6, 0 10px 20px rgba(123,95,214,.35);
+}
+.mode-btn.purple:active{box-shadow:0 2px 0 #7B5FD6;}
+.mode-btn.green{
+  background:linear-gradient(180deg,#A8F0B8,#5FD97A);
+  box-shadow:0 6px 0 #3FB65A, 0 10px 20px rgba(63,182,90,.3);
+}
+.mode-btn.green:active{box-shadow:0 2px 0 #3FB65A;}
+.mode-btn.gray{
+  background:linear-gradient(180deg,#DCD6EC,#B9AEDA);
+  box-shadow:0 6px 0 #9B8AC4, 0 10px 20px rgba(155,138,196,.3);
+  font-size:17px;padding:13px 28px;
+}
+.mode-btn.gray:active{box-shadow:0 2px 0 #9B8AC4;}
+.mode-tip{font-size:12px;color:#A99BC9;font-weight:700;margin:-4px 0 2px;}
+
+/* ---------- 游戏页 ---------- */
+.topbar{display:flex;align-items:center;gap:7px;flex:0 0 auto;}
+.back-btn{
+  flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+  border:none;background:#fff;padding:0;
+  font-size:17px;line-height:1;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 0 rgba(155,138,196,.22);
+  cursor:pointer;transition:transform .1s,box-shadow .1s;
+}
+.back-btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(155,138,196,.22);}
+.pill{
+  background:#fff;border-radius:999px;padding:7px 12px;
+  font-size:14px;font-weight:900;color:var(--dark);
+  box-shadow:0 3px 0 rgba(155,138,196,.22);
+  white-space:nowrap;flex:0 0 auto;
+}
+.pill.score{color:#FF9F1C;}
+.progress-track{
+  flex:1 1 auto;min-width:34px;height:14px;background:#fff;border-radius:999px;overflow:hidden;
+  box-shadow:inset 0 2px 5px rgba(155,138,196,.25);
+}
+.progress-fill{
+  height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,#FFD166,#FF8FB1);
+  transition:width .35s ease;
+}
+
+.qcard{
+  flex:1 1 auto;min-height:0;
+  margin:10px 0;
+  background:rgba(255,255,255,.85);
+  border-radius:28px;
+  box-shadow:0 8px 0 rgba(255,179,209,.35), 0 16px 30px rgba(155,138,196,.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:10px 8px;overflow:hidden;
+}
+
+.dot-wrap{
+  display:flex;flex-wrap:wrap;gap:5px;
+  justify-content:center;align-items:center;
+  width:100%;max-width:100%;
+  flex:1 1 auto;min-height:0;
+}
+.dot{
+  border-radius:50%;flex:0 0 auto;
+  animation:dotPop .32s cubic-bezier(.34,1.56,.64,1) backwards;
+  box-shadow:inset 0 -3px 0 rgba(0,0,0,.12);
+}
+@keyframes dotPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.dot.crossed{background:#E3E0EC !important;position:relative;}
+.dot.crossed::after{
+  content:'✕';position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  color:#FF5C8A;font-weight:900;line-height:1;
+}
+.op-sign{
+  font-weight:900;color:#9B8AC4;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  flex:0 0 auto;
+}
+
+.question{
+  font-size:clamp(30px,10vw,48px);
+  font-weight:900;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  gap:2px;letter-spacing:1px;
+  flex:0 0 auto;
+}
+.question.pop{animation:qPop .38s cubic-bezier(.34,1.56,.64,1);}
+@keyframes qPop{from{transform:scale(.75);opacity:.3}to{transform:scale(1);opacity:1}}
+.n1{color:#FF5C8A;}
+.n2{color:#3AA6FF;}
+.op{color:#B4A7D6;margin:0 .1em;}
+.qm{color:#FFB020;display:inline-block;animation:qmPulse 1.1s ease-in-out infinite;}
+@keyframes qmPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+
+/* ---------- 凑十法棋盘 ---------- */
+.math-board-wrap{
+  width:100%;flex:1 1 auto;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.math-board{
+  position:relative;
+  flex:0 0 auto;
+}
+.math-board svg{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  display:block;
+  overflow:visible;
+}
+.box-input, .box-fixed{
+  position:absolute;
+  box-sizing:border-box;
+  border:0.09em solid #4A3B6B;
+  border-radius:0.3em;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;
+  text-align:center;
+  font-family:inherit;
+  padding:0;
+  line-height:1;
+  background:#FFFDF5;
+  color:#4A3B6B;
+  transition:background .15s,border-color .15s,box-shadow .15s;
+}
+.box-input{
+  background:#fff;
+  cursor:pointer;
+}
+.box-input.active{
+  border-color:#FF8FB1;
+  box-shadow:0 0 0 0.15em rgba(255,143,177,.35);
+  background:#FFF5F9;
+}
+.box-input.correct{
+  background:#D3F9D8;
+  border-color:#4FB86A;
+  color:#2B8A3E;
+}
+.box-input.wrong{
+  background:#FFE3E3;
+  border-color:#E07070;
+  color:#C92A2A;
+  animation:shake .4s;
+}
+.box-input.hint{
+  background:#FFF3BF;
+  border-color:#FFB020;
+  color:#B8860B;
+}
+.box-fixed{
+  background:#E4FBE7;
+  border-color:#4FB86A;
+  color:#2B8A3E;
+}
+
+/* ---------- 数字键盘 ---------- */
+.keypad{
+  display:none;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  flex:0 0 auto;
+  padding-top:8px;
+}
+.keypad.show{display:grid;}
+.key{
+  border:none;border-radius:16px;
+  background:#fff;
+  font-family:inherit;
+  font-size:clamp(20px,6.5vw,26px);
+  font-weight:900;
+  color:#4A3B6B;
+  padding:8px 0;
+  box-shadow:0 4px 0 #DDD5EC, 0 6px 12px rgba(155,138,196,.15);
+  cursor:pointer;
+  transition:transform .08s,box-shadow .08s,background .15s;
+}
+.key:active{transform:translateY(3px);box-shadow:0 1px 0 #DDD5EC;}
+.key.del{
+  background:#FFE3EC;color:#E85C93;
+  box-shadow:0 4px 0 #FFB3C9, 0 6px 12px rgba(232,92,147,.2);
+}
+.key.del:active{box-shadow:0 1px 0 #FFB3C9;}
+.key.ok{
+  background:#A8F0B8;color:#2B8A3E;
+  box-shadow:0 4px 0 #5FD97A, 0 6px 12px rgba(63,182,90,.2);
+}
+.key.ok:active{box-shadow:0 1px 0 #5FD97A;}
+.key.ok:disabled{
+  background:#E8E8E8;color:#B0B0B0;
+  box-shadow:0 4px 0 #D0D0D0;
+  opacity:.7;
+  cursor:not-allowed;
+}
+.key.ok:disabled:active{transform:none;box-shadow:0 4px 0 #D0D0D0;}
+
+/* ---------- 选项 ---------- */
+.options{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  flex:0 0 auto;
+}
+.option{
+  border:none;border-radius:22px;
+  font-family:inherit;font-weight:900;
+  font-size:clamp(24px,8.5vw,36px);
+  color:var(--dark);
+  padding:13px 6px;cursor:pointer;
+  position:relative;
+  background:var(--bg,#fff);
+  box-shadow:0 6px 0 var(--sh,#DDD5EC), 0 10px 18px rgba(155,138,196,.15);
+  transition:transform .1s ease,box-shadow .1s ease,background .2s;
+}
+.option:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sh,#DDD5EC);}
+.option.correct{
+  background:#8CE99A !important;
+  color:#fff !important;
+  box-shadow:0 6px 0 #4FB86A !important;
+  animation:correctPop .45s cubic-bezier(.34,1.56,.64,1);
+}
+.option.correct::after{
+  content:'✓';position:absolute;top:2px;right:12px;
+  font-size:.55em;color:#fff;
+}
+.option.wrong{
+  background:#FFADAD !important;
+  color:#fff !important;
+  box-shadow:0 6px 0 #E07070 !important;
+  animation:shake .4s;
+}
+@keyframes correctPop{0%{transform:scale(1)}45%{transform:scale(1.13)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* ---------- 结果页 ---------- */
+#screen-result{justify-content:center;align-items:center;}
+.result-card{
+  background:#fff;border-radius:32px;padding:26px 22px;
+  width:min(340px,88vw);text-align:center;
+  box-shadow:0 10px 0 rgba(255,179,209,.4), 0 22px 40px rgba(155,138,196,.22);
+  display:flex;flex-direction:column;gap:10px;align-items:center;
+}
+.result-emoji{font-size:64px;line-height:1;animation:titleBounce 1.7s ease-in-out infinite;}
+.result-title{font-size:26px;font-weight:900;margin:0;color:#FF7FAE;letter-spacing:1px;}
+.result-score{font-size:46px;font-weight:900;color:#4A3B6B;line-height:1;}
+.result-score small{font-size:20px;color:#B4A7D6;}
+.result-stars{display:flex;gap:6px;font-size:34px;line-height:1;}
+.result-stars span{opacity:.22;filter:grayscale(1);transform:scale(.8);}
+.result-stars span.on{
+  opacity:1;filter:none;
+  animation:starPop .5s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+@keyframes starPop{from{transform:scale(0) rotate(-90deg)}to{transform:scale(1) rotate(0)}}
+.result-msg{font-size:15px;color:#8B7BAF;font-weight:800;margin:2px 0 8px;}
+
+/* ---------- 飘字表扬 ---------- */
+.praise{
+  position:fixed;left:50%;top:34%;
+  transform:translate(-50%,-50%);
+  font-size:34px;font-weight:900;color:#fff;
+  text-shadow:-2px -2px 0 #FF8FB1,2px -2px 0 #FF8FB1,-2px 2px 0 #FF8FB1,2px 2px 0 #FF8FB1,0 8px 16px rgba(255,143,177,.5);
+  pointer-events:none;z-index:1000;white-space:nowrap;
+  animation:praiseUp 1s ease-out forwards;
+}
+@keyframes praiseUp{
+  0%{transform:translate(-50%,-50%) scale(.4);opacity:0;}
+  35%{transform:translate(-50%,-55%) scale(1.15);opacity:1;}
+  100%{transform:translate(-50%,-115%) scale(1);opacity:0;}
+}
+
+/* ---------- 彩纸 ---------- */
+.confetti{
+  position:fixed;width:11px;height:11px;border-radius:3px;
+  pointer-events:none;z-index:999;
+  animation:confettiFly .95s cubic-bezier(.2,.7,.4,1) forwards;
+}
+@keyframes confettiFly{
+  0%{transform:translate(-50%,-50%) rotate(0deg) scale(1);opacity:1;}
+  100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(.4);opacity:0;}
+}
+</style>
+</head>
+<body>
+
+<div class="deco">
+  <span>☁️</span><span>⭐</span><span>🌈</span><span>☁️</span><span>🌟</span><span>🎈</span>
+</div>
+
+<div id="app">
+
+  <!-- 开始页 -->
+  <section id="screen-start" class="screen active">
+    <div class="mascot">🐣</div>
+    <h1 class="big-title">数学小勇士</h1>
+    <p class="subtitle">先选题型，再选难度吧！</p>
+
+    <div class="type-select" id="typeSelect">
+      <button class="type-btn active" data-type="mix">🔀 混合</button>
+      <button class="type-btn" data-type="add">➕ 加法</button>
+      <button class="type-btn" data-type="sub">➖ 减法</button>
+    </div>
+
+    <button class="mode-btn" data-mode="10">🍭 10以内</button>
+    <div class="mode-tip">例如：3 + 4 &nbsp;·&nbsp; 8 − 2</div>
+
+    <button class="mode-btn blue" data-mode="20">🚀 20以内</button>
+    <div class="mode-tip">例如：9 + 6 &nbsp;·&nbsp; 13 − 8</div>
+
+    <button class="mode-btn purple" data-mode="20t">🧮 20以内凑十法</button>
+    <div class="mode-tip">回车确定 · 退格删除 · 键盘可直接输入</div>
+  </section>
+
+  <!-- 游戏页 -->
+  <section id="screen-game" class="screen">
+    <div class="topbar">
+      <button class="back-btn" id="btnBack" aria-label="返回开始界面">🏠</button>
+      <div class="pill score">⭐ <span id="score">0</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="pill" id="qCounter">1/10</div>
+    </div>
+
+    <div class="qcard">
+      <div class="dot-wrap" id="visual"></div>
+      <div class="question" id="question"></div>
+    </div>
+
+    <div class="options" id="options"></div>
+
+    <div class="keypad" id="keypad">
+      <button class="key" data-num="1">1</button>
+      <button class="key" data-num="2">2</button>
+      <button class="key" data-num="3">3</button>
+      <button class="key" data-num="4">4</button>
+      <button class="key" data-num="5">5</button>
+      <button class="key" data-num="6">6</button>
+      <button class="key" data-num="7">7</button>
+      <button class="key" data-num="8">8</button>
+      <button class="key" data-num="9">9</button>
+      <button class="key del" data-act="del">⌫</button>
+      <button class="key" data-num="0">0</button>
+      <button class="key ok" data-act="check" disabled>✓</button>
+    </div>
+  </section>
+
+  <!-- 结果页 -->
+  <section id="screen-result" class="screen">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji">🎉</div>
+      <h2 class="result-title" id="resultTitle">真棒！</h2>
+      <div class="result-score"><span id="resultScore">0</span><small> / 10</small></div>
+      <div class="result-stars" id="resultStars">
+        <span>⭐</span><span>⭐</span><span>⭐</span>
+      </div>
+      <p class="result-msg" id="resultMsg">你真是数学小天才！</p>
+      <button class="mode-btn green" id="btnAgain">🔄 再玩一次</button>
+      <button class="mode-btn gray" id="btnHome">🏠 换个难度</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ==================== 音效 ==================== */
+var actx = null;
+function ensureAudio(){
+  if(!actx){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(AC){ try{ actx = new AC(); }catch(e){ actx = null; } }
+  }
+  if(actx && actx.state === 'suspended'){ actx.resume(); }
+}
+function tone(freq, delay, dur, type, vol){
+  if(!actx) return;
+  type = type || 'sine';
+  vol = vol || 0.14;
+  var o = actx.createOscillator();
+  var g = actx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  o.connect(g); g.connect(actx.destination);
+  var t = actx.currentTime + delay;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.start(t);
+  o.stop(t + dur + 0.06);
+}
+function sfxCorrect(){
+  ensureAudio();
+  var notes = [523.25, 659.25, 783.99, 1046.5];
+  for(var i=0;i<notes.length;i++) tone(notes[i], i*0.085, 0.26, 'sine', 0.15);
+}
+function sfxWrong(){
+  ensureAudio();
+  tone(300, 0, 0.18, 'triangle', 0.12);
+  tone(210, 0.14, 0.3, 'triangle', 0.12);
+}
+function sfxTap(){
+  ensureAudio();
+  tone(720, 0, 0.07, 'square', 0.05);
+}
+function sfxPop(){
+  ensureAudio();
+  tone(880, 0, 0.06, 'sine', 0.07);
+}
+
+/* ==================== 工具 ==================== */
+function randInt(min, max){
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function shuffle(arr){
+  for(var i = arr.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function $(id){ return document.getElementById(id); }
+
+/* ==================== 状态 ==================== */
+var state = {
+  mode: '10',
+  type: 'mix',
+  qIndex: 0,
+  totalQ: 10,
+  score: 0,
+  current: null,
+  questionList: [],
+  locked: true,
+  timer: null
+};
+
+var inputState = {
+  inputs: [],
+  active: null,
+  checked: false
+};
+
+function clearTimer(){
+  if(state.timer){
+    clearTimeout(state.timer);
+    state.timer = null;
+  }
+}
+
+/* ==================== 题目池 ==================== */
+function buildQuestionPool(mode){
+  var addPool = [];
+  var subPool = [];
+  var a, b, bMin, lo, hi;
+
+  if(mode === '10'){
+    for(a = 1; a <= 9; a++){
+      for(b = 1; b <= 10 - a; b++){
+        addPool.push({ a:a, b:b, answer:a + b, isAdd:true, mode:mode });
+      }
+    }
+    for(a = 2; a <= 10; a++){
+      for(b = 1; b < a; b++){
+        subPool.push({ a:a, b:b, answer:a - b, isAdd:false, mode:mode });
+      }
+    }
+  }else{
+    for(a = 3; a <= 9; a++){
+      bMin = Math.max(2, 11 - a);
+      for(b = bMin; b <= 9; b++){
+        addPool.push({ a:a, b:b, answer:a + b, isAdd:true, mode:mode });
+      }
+    }
+    for(a = 11; a <= 18; a++){
+      lo = Math.max(1, a - 9);
+      hi = Math.min(9, a - 1);
+      for(b = lo; b <= hi; b++){
+        subPool.push({ a:a, b:b, answer:a - b, isAdd:false, mode:mode });
+      }
+    }
+  }
+
+  return { addPool: addPool, subPool: subPool };
+}
+
+function pickUnique(pool, n){
+  if(n <= 0) return [];
+  var shuffled = shuffle(pool.slice());
+  var picked = [];
+  var seen = {};
+  for(var i = 0; i < shuffled.length && picked.length < n; i++){
+    var q = shuffled[i];
+    var key = Math.min(q.a, q.b) + '_' + Math.max(q.a, q.b) + (q.isAdd ? '+' : '-');
+    if(seen[key]) continue;
+    seen[key] = true;
+    picked.push(q);
+  }
+  if(picked.length < n){
+    for(var j = 0; j < shuffled.length && picked.length < n; j++){
+      var q2 = shuffled[j];
+      if(picked.indexOf(q2) === -1) picked.push(q2);
+    }
+  }
+  return picked;
+}
+
+function generateQuestionList(mode, type){
+  var pool = buildQuestionPool(mode);
+  var addCount, subCount;
+
+  if(type === 'add'){
+    addCount = state.totalQ;
+    subCount = 0;
+  }else if(type === 'sub'){
+    addCount = 0;
+    subCount = state.totalQ;
+  }else{
+    addCount = Math.floor(state.totalQ / 2);
+    subCount = state.totalQ - addCount;
+  }
+
+  var addQs = addCount > 0 ? pickUnique(pool.addPool, addCount) : [];
+  var subQs = subCount > 0 ? pickUnique(pool.subPool, subCount) : [];
+
+  return shuffle(addQs.concat(subQs));
+}
+
+/* ==================== 选项生成 ==================== */
+function makeOptions(answer, max){
+  var set = {};
+  set[answer] = true;
+  var result = [answer];
+
+  var deltas = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5];
+  shuffle(deltas);
+  for(var i = 0; i < deltas.length && result.length < 4; i++){
+    var v = answer + deltas[i];
+    if(v >= 0 && v <= max && !set[v]){
+      set[v] = true;
+      result.push(v);
+    }
+  }
+
+  var lo = Math.max(0, answer - 5);
+  var hi = Math.min(max, answer + 5);
+  var guard = 0;
+  while(result.length < 4 && guard < 100){
+    guard++;
+    var r = randInt(lo, hi);
+    if(!set[r]){ set[r] = true; result.push(r); }
+  }
+  guard = 0;
+  while(result.length < 4 && guard < 200){
+    guard++;
+    var r2 = randInt(0, max);
+    if(!set[r2]){ set[r2] = true; result.push(r2); }
+  }
+  return shuffle(result);
+}
+
+/* ==================== 渲染工具 ==================== */
+var OPTION_COLORS = [
+  { bg:'#FFE3EC', sh:'#FFB3C9' },
+  { bg:'#E1F1FF', sh:'#A8CDFF' },
+  { bg:'#E4FBE7', sh:'#A6E8B0' },
+  { bg:'#FFF6DA', sh:'#FFD980' }
+];
+
+function makeDot(size, color, crossed){
+  var d = document.createElement('div');
+  d.className = 'dot' + (crossed ? ' crossed' : '');
+  d.style.width = size + 'px';
+  d.style.height = size + 'px';
+  d.style.background = color;
+  d.style.fontSize = Math.round(size * 0.8) + 'px';
+  return d;
+}
+
+function renderVisual(q){
+  var wrap = $('visual');
+  wrap.className = 'dot-wrap';
+  wrap.innerHTML = '';
+
+  var total = q.isAdd ? (q.a + q.b) : q.a;
+  var gap = 5;
+  var W = wrap.clientWidth || Math.min(window.innerWidth - 60, 320);
+  var perRow = Math.min(total, 10);
+
+  var size = Math.floor((W - gap * (perRow - 1)) / perRow);
+  size = Math.min(size, total > 10 ? 26 : 44);
+  size = Math.max(size, 12);
+
+  var i, d;
+
+  if(q.isAdd){
+    for(i = 0; i < q.a; i++){
+      d = makeDot(size, '#FF8FB1', false);
+      d.style.animationDelay = (i * 22) + 'ms';
+      wrap.appendChild(d);
+    }
+    var sign = document.createElement('div');
+    sign.className = 'op-sign';
+    sign.textContent = '+';
+    sign.style.fontSize = Math.round(size * 0.8) + 'px';
+    sign.style.height = size + 'px';
+    wrap.appendChild(sign);
+    for(i = 0; i < q.b; i++){
+      d = makeDot(size, '#6EC5FF', false);
+      d.style.animationDelay = ((q.a + i) * 22) + 'ms';
+      wrap.appendChild(d);
+    }
+  }else{
+    var cutStart = q.a - q.b;
+    for(i = 0; i < q.a; i++){
+      var crossed = i >= cutStart;
+      d = makeDot(size, crossed ? '#E3E0EC' : '#FF8FB1', crossed);
+      d.style.animationDelay = (i * 22) + 'ms';
+      wrap.appendChild(d);
+    }
+  }
+}
+
+/* ==================== 凑十法棋盘 ==================== */
+var SVG_W = 320;
+var SVG_H = 220;
+
+function svgEl(tag, attrs){
+  var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(var k in attrs){ el.setAttribute(k, attrs[k]); }
+  return el;
+}
+
+function createTenSVG(q){
+  var svg = svgEl('svg', {
+    viewBox: '0 0 ' + SVG_W + ' ' + SVG_H,
+    preserveAspectRatio: 'xMidYMid meet'
+  });
+
+  function addText(x, y, text, color, size, weight){
+    var t = svgEl('text', {
+      x: x, y: y,
+      'text-anchor': 'middle',
+      'dominant-baseline': 'middle',
+      'font-size': size || 22,
+      'font-weight': weight || '900',
+      'fill': color || '#4A3B6B',
+      'font-family': 'inherit'
+    });
+    t.textContent = text;
+    svg.appendChild(t);
+  }
+
+  function addPath(d){
+    svg.appendChild(svgEl('path', {
+      d: d,
+      fill: 'none',
+      stroke: '#9B8AC4',
+      'stroke-width': 2,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    }));
+  }
+
+  if(q.isAdd){
+    addText(50, 35, q.a, '#FF5C8A', 24);
+    addText(105, 35, '+', '#B4A7D6', 24);
+    addText(160, 35, q.b, '#3AA6FF', 24);
+    addText(210, 35, '=', '#B4A7D6', 24);
+
+    addPath('M 160 52 L 160 75');
+    addPath('M 160 75 L 130 75 L 130 90');
+    addPath('M 160 75 L 190 75 L 190 90');
+    addPath('M 50 52 L 50 150 L 115 150');
+    addPath('M 130 120 L 130 150');
+  }else{
+    addText(45, 35, q.a, '#FF5C8A', 24);
+    addText(105, 35, '−', '#B4A7D6', 24);
+    addText(160, 35, q.b, '#3AA6FF', 24);
+    addText(210, 35, '=', '#B4A7D6', 24);
+
+    addPath('M 45 52 L 45 75');
+    addPath('M 45 75 L 25 75 L 25 90');
+    addPath('M 45 75 L 70 75 L 70 90');
+    addPath('M 25 120 L 25 150');
+    addPath('M 160 52 L 160 165 L 40 165');
+  }
+
+  return svg;
+}
+
+function sizeBoard(board){
+  var wrap = board.parentNode;
+  if(!wrap) return;
+  var availW = wrap.clientWidth;
+  var availH = wrap.clientHeight;
+  if(availW <= 0 || availH <= 0) return;
+
+  var ratio = SVG_W / SVG_H;
+  var w = availW;
+  var h = w / ratio;
+  if(h > availH){
+    h = availH;
+    w = h * ratio;
+  }
+  board.style.width = w + 'px';
+  board.style.height = h + 'px';
+  board.style.fontSize = (w / SVG_W * 20) + 'px';
+}
+
+function setBoxPos(el, x, y, w, h){
+  el.style.left = (x / SVG_W * 100) + '%';
+  el.style.top = (y / SVG_H * 100) + '%';
+  el.style.width = (w / SVG_W * 100) + '%';
+  el.style.height = (h / SVG_H * 100) + '%';
+}
+
+function renderTenMethod(q){
+  var wrap = $('visual');
+  wrap.className = 'math-board-wrap';
+  wrap.innerHTML = '';
+
+  inputState.inputs = [];
+  inputState.active = null;
+  inputState.checked = false;
+
+  var board = document.createElement('div');
+  board.className = 'math-board';
+
+  board.appendChild(createTenSVG(q));
+
+  var tenBox = document.createElement('div');
+  tenBox.className = 'box-fixed';
+  tenBox.textContent = '10';
+  if(q.isAdd){
+    setBoxPos(tenBox, 115, 150, 30, 30);
+  }else{
+    setBoxPos(tenBox, 10, 90, 30, 30);
+  }
+  board.appendChild(tenBox);
+
+  var configs;
+  if(q.isAdd){
+    var need = 10 - q.a;
+    var remain = q.b - need;
+    configs = [
+      { x:115, y:90,  w:30, h:30, answer:need },
+      { x:175, y:90,  w:30, h:30, answer:remain },
+      { x:232, y:14,  w:40, h:42, answer:q.answer }
+    ];
+  }else{
+    var ones = q.a - 10;
+    var t = 10 - q.b;
+    configs = [
+      { x:55,  y:90,  w:30, h:30, answer:ones },
+      { x:10,  y:150, w:30, h:30, answer:t },
+      { x:228, y:14,  w:40, h:42, answer:q.answer }
+    ];
+  }
+
+  for(var i = 0; i < configs.length; i++){
+    (function(cfg){
+      var box = document.createElement('div');
+      box.className = 'box-input';
+      box.dataset.answer = cfg.answer;
+      setBoxPos(box, cfg.x, cfg.y, cfg.w, cfg.h);
+      box.addEventListener('click', function(){
+        if(inputState.checked) return;
+        setActiveInput(box);
+        sfxPop();
+      });
+      board.appendChild(box);
+      inputState.inputs.push(box);
+    })(configs[i]);
+  }
+
+  wrap.appendChild(board);
+
+  requestAnimationFrame(function(){
+    sizeBoard(board);
+    if(inputState.inputs.length){
+      setActiveInput(inputState.inputs[0]);
+    }
+    updateCheckBtn();
+  });
+}
+
+function setActiveInput(box){
+  if(inputState.active && inputState.active !== box){
+    inputState.active.classList.remove('active');
+  }
+  inputState.active = box;
+  if(box) box.classList.add('active');
+}
+
+function updateCheckBtn(){
+  var okBtn = document.querySelector('.key.ok');
+  if(!okBtn) return;
+  var allFilled = inputState.inputs.length > 0 && inputState.inputs.every(function(b){
+    return b.textContent !== '';
+  });
+  okBtn.disabled = !allFilled;
+}
+
+function autoNextInput(){
+  if(!inputState.active) return;
+  if(inputState.active.textContent === '') return;
+  var idx = inputState.inputs.indexOf(inputState.active);
+  if(idx < 0) return;
+  for(var i = 1; i <= inputState.inputs.length; i++){
+    var next = inputState.inputs[(idx + i) % inputState.inputs.length];
+    if(next.textContent === ''){
+      setActiveInput(next);
+      return;
+    }
+  }
+}
+
+/* ---------- 数字键盘输入逻辑（屏幕和实体键盘共用） ---------- */
+function typeNumber(numStr){
+  if(inputState.checked) return false;
+  if(!inputState.active) return false;
+  var v = inputState.active.textContent || '';
+  if(v.length >= 2) return false;
+  inputState.active.textContent = v + numStr;
+  sfxPop();
+  autoNextInput();
+  updateCheckBtn();
+  return true;
+}
+
+function deleteOne(){
+  if(inputState.checked) return false;
+  if(!inputState.active) return false;
+  var v = inputState.active.textContent || '';
+  if(v.length === 0) return false;
+  // 退格 = 删除最后一个字符
+  inputState.active.textContent = v.slice(0, -1);
+  sfxPop();
+  updateCheckBtn();
+  return true;
+}
+
+function submitAnswer(){
+  if(inputState.checked) return false;
+  if(inputState.inputs.length === 0) return false;
+  var allFilled = inputState.inputs.every(function(b){ return b.textContent !== ''; });
+  if(!allFilled){
+    // 未填完时给出提示：播放一个柔和的错误音
+    sfxWrong();
+    return false;
+  }
+  checkTenAnswers();
+  return true;
+}
+
+function checkTenAnswers(){
+  if(inputState.checked) return;
+  if(inputState.inputs.length === 0) return;
+
+  var allFilled = inputState.inputs.every(function(b){ return b.textContent !== ''; });
+  if(!allFilled) return;
+
+  inputState.checked = true;
+  var allCorrect = true;
+
+  inputState.inputs.forEach(function(box){
+    var val = parseInt(box.textContent, 10);
+    var ans = parseInt(box.dataset.answer, 10);
+    if(val === ans){
+      box.classList.add('correct');
+    }else{
+      box.classList.add('wrong');
+      allCorrect = false;
+    }
+  });
+
+  if(allCorrect){
+    state.score++;
+    $('score').textContent = state.score;
+    $('progressFill').style.width = (state.qIndex / state.totalQ * 100) + '%';
+    sfxCorrect();
+
+    var lastBox = inputState.inputs[inputState.inputs.length - 1];
+    var r = lastBox.getBoundingClientRect();
+    burstConfetti(r.left + r.width / 2, r.top + r.height / 2);
+
+    var praises = ['太棒啦！', '好厉害！', '答对啦！', '真聪明！', '完美！', '你真棒！'];
+    showPraise(praises[randInt(0, praises.length - 1)]);
+
+    state.timer = setTimeout(nextQuestion, 1200);
+  }else{
+    sfxWrong();
+    inputState.inputs.forEach(function(box){
+      if(box.classList.contains('wrong')){
+        box.textContent = box.dataset.answer;
+        box.classList.add('hint');
+      }
+    });
+    state.timer = setTimeout(nextQuestion, 2000);
+  }
+}
+
+/* ---------- 题目 ---------- */
+function renderQuestion(q){
+  var qEl = $('question');
+
+  if(q.mode === '20t'){
+    qEl.style.display = 'none';
+    $('options').style.display = 'none';
+    $('keypad').classList.add('show');
+    renderTenMethod(q);
+    return;
+  }
+
+  qEl.style.display = 'flex';
+  $('options').style.display = 'grid';
+  $('keypad').classList.remove('show');
+
+  qEl.classList.remove('pop');
+  qEl.innerHTML =
+    '<span class="n1">' + q.a + '</span>' +
+    '<span class="op">' + (q.isAdd ? '+' : '−') + '</span>' +
+    '<span class="n2">' + q.b + '</span>' +
+    '<span class="op">=</span>' +
+    '<span class="qm">?</span>';
+  void qEl.offsetWidth;
+  qEl.classList.add('pop');
+
+  requestAnimationFrame(function(){
+    renderVisual(q);
+    renderOptions(q);
+  });
+}
+
+function renderOptions(q){
+  var box = $('options');
+  box.innerHTML = '';
+  var max = q.mode === '10' ? 10 : 20;
+  var opts = makeOptions(q.answer, max);
+  var colors = shuffle(OPTION_COLORS.slice());
+
+  for(var i = 0; i < opts.length; i++){
+    (function(val, idx){
+      var btn = document.createElement('button');
+      btn.className = 'option';
+      btn.textContent = val;
+      btn.dataset.value = val;
+      var c = colors[idx % colors.length];
+      btn.style.setProperty('--bg', c.bg);
+      btn.style.setProperty('--sh', c.sh);
+      btn.addEventListener('click', function(){ onAnswer(val, btn); });
+      box.appendChild(btn);
+    })(opts[i], i);
+  }
+}
+
+/* ==================== 游戏流程 ==================== */
+function startGame(mode){
+  ensureAudio();
+  sfxTap();
+  clearTimer();
+
+  state.mode = mode;
+  state.qIndex = 0;
+  state.score = 0;
+  state.locked = true;
+  state.current = null;
+  state.questionList = generateQuestionList(mode, state.type);
+
+  inputState.inputs = [];
+  inputState.active = null;
+  inputState.checked = false;
+
+  $('score').textContent = '0';
+  $('progressFill').style.width = '0%';
+  $('qCounter').textContent = '0/' + state.totalQ;
+
+  showScreen('game');
+  state.timer = setTimeout(nextQuestion, 260);
+}
+
+function nextQuestion(){
+  state.timer = null;
+
+  if(state.qIndex >= state.totalQ){
+    endGame();
+    return;
+  }
+  state.qIndex++;
+  state.locked = false;
+
+  var q = state.questionList[state.qIndex - 1];
+  if(!q){
+    q = { a:1, b:1, answer:2, isAdd:true, mode:state.mode };
+  }
+  state.current = q;
+
+  $('qCounter').textContent = state.qIndex + '/' + state.totalQ;
+  $('progressFill').style.width = ((state.qIndex - 1) / state.totalQ * 100) + '%';
+
+  renderQuestion(q);
+}
+
+function onAnswer(val, btn){
+  if(state.locked) return;
+  state.locked = true;
+  sfxTap();
+
+  var q = state.current;
+  if(!q) return;
+  var allBtns = document.querySelectorAll('.option');
+
+  if(val === q.answer){
+    state.score++;
+    $('score').textContent = state.score;
+    $('progressFill').style.width = (state.qIndex / state.totalQ * 100) + '%';
+
+    btn.classList.add('correct');
+    sfxCorrect();
+
+    var r = btn.getBoundingClientRect();
+    burstConfetti(r.left + r.width / 2, r.top + r.height / 2);
+
+    var praises = ['太棒啦！', '好厉害！', '答对啦！', '真聪明！', '完美！', '你真棒！'];
+    showPraise(praises[randInt(0, praises.length - 1)]);
+
+    state.timer = setTimeout(nextQuestion, 1050);
+  }else{
+    btn.classList.add('wrong');
+    sfxWrong();
+
+    for(var i = 0; i < allBtns.length; i++){
+      if(parseInt(allBtns[i].dataset.value, 10) === q.answer){
+        allBtns[i].classList.add('correct');
+      }
+    }
+    state.timer = setTimeout(nextQuestion, 1650);
+  }
+}
+
+function endGame(){
+  showScreen('result');
+
+  var s = state.score;
+  var total = state.totalQ;
+  var ratio = s / total;
+
+  var emoji, title, msg;
+  if(ratio >= 0.9){
+    emoji = '🏆'; title = '数学小天才！'; msg = '几乎全对，太厉害啦！';
+  }else if(ratio >= 0.7){
+    emoji = '🎉'; title = '真棒！'; msg = '你做得很不错哦，继续加油！';
+  }else if(ratio >= 0.4){
+    emoji = '😊'; title = '加油！'; msg = '再练一练就更厉害啦！';
+  }else{
+    emoji = '🌱'; title = '别灰心！'; msg = '慢慢来，你一定可以的！';
+  }
+
+  $('resultEmoji').textContent = emoji;
+  $('resultTitle').textContent = title;
+  $('resultScore').textContent = s;
+  $('resultMsg').textContent = msg;
+
+  var stars = ratio >= 0.9 ? 3 : (ratio >= 0.7 ? 2 : (ratio >= 0.4 ? 1 : 0));
+  var starEls = $('resultStars').children;
+  for(var i = 0; i < starEls.length; i++){
+    starEls[i].classList.remove('on');
+    starEls[i].style.animationDelay = '';
+  }
+  for(var j = 0; j < starEls.length; j++){
+    (function(el, idx){
+      if(idx < stars){
+        el.style.animationDelay = (idx * 0.18 + 0.1) + 's';
+        setTimeout(function(){ el.classList.add('on'); }, 30);
+      }
+    })(starEls[j], j);
+  }
+
+  if(ratio >= 0.7){
+    setTimeout(function(){
+      burstConfetti(window.innerWidth * 0.5, window.innerHeight * 0.35);
+    }, 400);
+  }
+}
+
+/* ==================== 特效 ==================== */
+function showPraise(text){
+  var el = document.createElement('div');
+  el.className = 'praise';
+  el.textContent = text;
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 1000);
+}
+
+function burstConfetti(cx, cy){
+  var colors = ['#FF8FB1', '#FFD166', '#8CE99A', '#6EC5FF', '#B197FC', '#FFA94D', '#FF6B9D'];
+  for(var i = 0; i < 26; i++){
+    var el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = cx + 'px';
+    el.style.top = cy + 'px';
+    el.style.background = colors[i % colors.length];
+    if(i % 3 === 0){ el.style.borderRadius = '50%'; }
+
+    var angle = Math.random() * Math.PI * 2;
+    var dist = 70 + Math.random() * 130;
+    el.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    el.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    el.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+
+    document.body.appendChild(el);
+    (function(node){
+      setTimeout(function(){ node.remove(); }, 1000);
+    })(el);
+  }
+}
+
+/* ==================== 屏幕切换 ==================== */
+function showScreen(name){
+  var screens = document.querySelectorAll('.screen');
+  for(var i = 0; i < screens.length; i++){
+    screens[i].classList.remove('active');
+  }
+  $('screen-' + name).classList.add('active');
+}
+
+function goHome(){
+  ensureAudio();
+  sfxTap();
+  clearTimer();
+
+  state.locked = true;
+  state.current = null;
+  state.qIndex = 0;
+  state.score = 0;
+  state.questionList = [];
+
+  inputState.inputs = [];
+  inputState.active = null;
+  inputState.checked = false;
+
+  $('options').innerHTML = '';
+  var v = $('visual');
+  v.className = 'dot-wrap';
+  v.innerHTML = '';
+  $('question').innerHTML = '';
+  $('question').style.display = 'flex';
+  $('progressFill').style.width = '0%';
+  $('score').textContent = '0';
+  $('qCounter').textContent = '0/10';
+  $('keypad').classList.remove('show');
+  $('options').style.display = 'grid';
+
+  showScreen('start');
+}
+
+/* ==================== 题型选择 ==================== */
+$('typeSelect').addEventListener('click', function(e){
+  var btn = e.target.closest('.type-btn');
+  if(!btn) return;
+  document.querySelectorAll('.type-btn').forEach(function(b){
+    b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  state.type = btn.dataset.type;
+  sfxTap();
+});
+
+/* ==================== 屏幕数字键盘 ==================== */
+$('keypad').addEventListener('click', function(e){
+  var btn = e.target.closest('.key');
+  if(!btn) return;
+  if(inputState.checked) return;
+
+  var num = btn.dataset.num;
+  var act = btn.dataset.act;
+
+  if(num !== undefined){
+    typeNumber(num);
+  }else if(act === 'del'){
+    deleteOne();
+  }else if(act === 'check'){
+    submitAnswer();
+  }
+});
+
+/* ==================== 实体键盘 ==================== */
+/* 规则：
+   - 数字键 0-9：输入数字
+   - Backspace / Delete：删除（删除最后一位）
+   - Enter：确定（提交答案）
+   - Tab / Shift+Tab：切换输入框
+   - 其他可打印字符：拦截，保证只能输入数字
+*/
+document.addEventListener('keydown', function(e){
+  // 只在凑十法游戏页激活时生效
+  if(!state.current || state.current.mode !== '20t') return;
+  if(!$('screen-game').classList.contains('active')) return;
+
+  var key = e.key;
+
+  // 数字键 0-9（含小键盘）
+  if(key.length === 1 && key >= '0' && key <= '9'){
+    e.preventDefault();
+    if(inputState.checked) return;
+    typeNumber(key);
+    return;
+  }
+
+  // 退格 = 删除
+  if(key === 'Backspace' || key === 'Delete'){
+    e.preventDefault();
+    if(inputState.checked) return;
+    deleteOne();
+    return;
+  }
+
+  // 回车 = 确定
+  if(key === 'Enter'){
+    e.preventDefault();
+    if(inputState.checked) return;
+    submitAnswer();
+    return;
+  }
+
+  // Tab 切换输入框
+  if(key === 'Tab'){
+    e.preventDefault();
+    if(inputState.checked) return;
+    if(inputState.inputs.length === 0) return;
+    var idx = inputState.inputs.indexOf(inputState.active);
+    var dir = e.shiftKey ? -1 : 1;
+    var nextIdx = (idx + dir + inputState.inputs.length) % inputState.inputs.length;
+    setActiveInput(inputState.inputs[nextIdx]);
+    sfxPop();
+    return;
+  }
+
+  // 其他可打印字符一律拦截（保证只能输入数字）
+  if(key.length === 1){
+    e.preventDefault();
+  }
+});
+
+/* ==================== 事件绑定 ==================== */
+document.querySelectorAll('#screen-start .mode-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    startGame(btn.dataset.mode);
+  });
+});
+
+$('btnAgain').addEventListener('click', function(){
+  startGame(state.mode);
+});
+
+$('btnHome').addEventListener('click', goHome);
+$('btnBack').addEventListener('click', goHome);
+
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+document.addEventListener('dblclick', function(e){ e.preventDefault(); }, { passive:false });
+
+var resizeTimer = null;
+window.addEventListener('resize', function(){
+  if(!state.current) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    if(!$('screen-game').classList.contains('active')) return;
+    if(state.current.mode === '20t'){
+      var board = document.querySelector('.math-board');
+      if(board) sizeBoard(board);
+    }else{
+      renderVisual(state.current);
+    }
+  }, 150);
+});
+
+})();
+</script>
+</body>
+</html>
